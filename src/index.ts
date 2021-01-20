@@ -8,39 +8,29 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { DevWorkspaceApi } from './rest';
+import fastify from 'fastify';
+import { DevWorkspaceService } from './workspace/service';
 
-export type Interceptor = (value: AxiosRequestConfig) => AxiosRequestConfig | Promise<AxiosRequestConfig>;
-export interface IAxiosConfig {
-    baseURL?: string;
-    interceptors?: Interceptor[];
-    token?: string;
-}
+const server = fastify();
 
-export class DevWorkspaceClient {
+const workspaceService = new DevWorkspaceService();
 
-    private static axios: AxiosInstance;
-    private static unsupportedUrl: string = '/unsupported/k8s';
+server.get('/workspace/getAllDevWorkspaces', async (request, reply) => {
+  return workspaceService.getAllWorkspaces();
+});
 
-    public static configureAxios(config: IAxiosConfig) {
-        if (config.baseURL) {
-            DevWorkspaceClient.axios = axios.create({
-                baseURL: config.baseURL + '/api' + DevWorkspaceClient.unsupportedUrl
-            });
-        }
-        if (config.interceptors) {
-            config.interceptors.forEach((interceptor) => {
-                DevWorkspaceClient.axios.interceptors.request.use(interceptor);
-            });
-        }
-        if (config.token) {
-            DevWorkspaceClient.axios.defaults.headers.common.Authorization = `Bearer ${config.token}`;
-        }
-    }
+server.get('/workspace/getWorkspacesById', async (request, reply) => {
+  return workspaceService.getWorkspaceById((request.params as any).workspaceId);
+});
 
-    public static getRestApi() {
-        return new DevWorkspaceApi(this.axios);
-    }
+server.get('/', async (request, reploy) => {
+  return 'working';
+});
 
-}
+server.listen(8080, (err, address) => {
+  if (err) {
+    console.error(err);
+    process.exit(1);
+  }
+  console.log(`Server listening at ${address}`);
+});

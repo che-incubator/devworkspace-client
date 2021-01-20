@@ -2,11 +2,12 @@
     "compilerOptions": {
         "strict": true,
         "target": "es5",
-        "lib": ["es6", "dom"],
+        "lib": ["es6"],
         "module": "commonjs",
         "declaration": true,
-        "outDir": ".",
-        "baseUrl": "src"
+        "outDir": "dist",
+        "baseUrl": "src",
+        "moduleResolution": "Node"
     },
     "exclude": [
         "node_modules",
