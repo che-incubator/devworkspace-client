@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: devworkspace-client-deployment
   namespace: devworkspace-controller
+  labels:
+    app: devworkspace-client
 spec:
   selector:
     matchLabels:

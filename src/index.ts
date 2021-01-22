@@ -15,28 +15,26 @@ const server = fastify();
 
 const workspaceService = new DevWorkspaceService();
 
-server.get('/workspace/getAllDevWorkspaces', async (request, reply) => {
+server.get('/workspace', async (request, reply) => {
   return workspaceService.getAllWorkspaces();
 });
 
-server.get('/workspace/getWorkspacesById', async (request, reply) => {
-  return workspaceService.getWorkspaceById((request.params as any).workspaceId);
-});
-
-server.post('/workspace/create', async (request, reply) => {
+server.post('/workspace', async (request, reply) => {
   return workspaceService.create(request.body);
 });
 
-server.patch('/workspace/changeWorkspaceStatus', async (request, reply) => {
-  const body = request.body as any;
-  return workspaceService.changeWorkspaceStatus(body.workspaceId, body.started);
+server.get('/workspace/:workspaceId', async (request, reply) => {
+  const workspaceId = (request.params as any).workspaceId;
+  return workspaceService.getWorkspaceById(workspaceId);
 });
 
-server.get('/', async (request, reploy) => {
-  return 'working';
+server.patch('/workspace/:workspaceId', async (request, reply) => {
+  const workspaceId = (request.params as any).workspaceId;
+  const started = (request.params as any).started;
+  return workspaceService.changeWorkspaceStatus(workspaceId, started);
 });
 
-server.listen(8080, (err, address) => {
+server.listen(8080, '0.0.0.0', (err, address) => {
   if (err) {
     console.error(err);
     process.exit(1);

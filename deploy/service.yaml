@@ -3,6 +3,8 @@ kind: Service
 metadata:
   name: devworkspace-client-service
   namespace: devworkspace-controller
+  labels:
+    app: devworkspace-client
 spec:
   selector:
     app: devworkspace-client

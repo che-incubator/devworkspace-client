@@ -3,9 +3,10 @@ apiVersion: route.openshift.io/v1
 metadata:
   name: devworkspace-client-route
   namespace: devworkspace-controller
+  labels:
+    app: devworkspace-client
 spec:
   host: devworkspace-client-devworkspace-controller.apps-crc.testing
-  path: /
   to:
     kind: Service
     name: devworkspace-client-service
