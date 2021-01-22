@@ -10,14 +10,6 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { AxiosInstance } from 'axios';
-import { DevWorkspaceApi } from './api';
-
-export * from './converter';
-export class DevWorkspaceClient {
-
-    public static getApi(axios: AxiosInstance) {
-        return new DevWorkspaceApi(axios);
-    }
-
-}
+export const delay = (ms = 500) => {
+    return new Promise<void>(resolve => setTimeout(resolve, ms));
+};
