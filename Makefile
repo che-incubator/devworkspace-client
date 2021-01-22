@@ -1,6 +1,7 @@
 
 
 build:
+	yarn run build
 	docker build . -t quay.io/jpinkney/devworkspace-client
 	docker push quay.io/jpinkney/devworkspace-client
 

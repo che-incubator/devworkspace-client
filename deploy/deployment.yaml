@@ -17,4 +17,5 @@ spec:
         image: quay.io/jpinkney/devworkspace-client
         ports:
         - containerPort: 8080
+        imagePullPolicy: Always
       serviceAccount: devworkspace-controller-serviceaccount
