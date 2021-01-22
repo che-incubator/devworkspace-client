@@ -30,8 +30,9 @@ server.get('/workspace/:workspaceId', async (request, reply) => {
 
 server.patch('/workspace/:workspaceId', async (request, reply) => {
   const workspaceId = (request.params as any).workspaceId;
-  const started = (request.params as any).started;
-  return workspaceService.changeWorkspaceStatus(workspaceId, started);
+  const { body } = request;
+  console.log(body);
+  return workspaceService.changeWorkspaceStatus(workspaceId, body as boolean);
 });
 
 server.listen(8080, '0.0.0.0', (err, address) => {
