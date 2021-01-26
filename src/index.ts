@@ -13,26 +13,65 @@ import { DevWorkspaceService } from './workspace/service';
 
 const server = fastify();
 
+// tslint:disable-next-line:no-var-requires
+server.register(require('fastify-cors'), {
+  origin: ['http://localhost:3333'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+});
+
+server.addContentTypeParser('application/merge-patch+json', { parseAs: 'string' }, function (req, body, done) {
+  try {
+    var json = JSON.parse(body as string);
+    done(null, json);
+  } catch (err) {
+    err.statusCode = 400;
+    done(err, undefined);
+  }
+});
+
 const workspaceService = new DevWorkspaceService();
 
-server.get('/workspace', async (request, reply) => {
-  return workspaceService.getAllWorkspaces();
+server.post('/namespace/:namespace', async (request, reply) => {
+  const namespace = (request.params as any).namespace;
+  return workspaceService.createNamespace(namespace);
+});
+
+server.get('/workspace/namespace/:namespace', async (request, reply) => {
+  const namespace = (request.params as any).namespace;
+  return workspaceService.getAllWorkspaces(namespace);
 });
 
 server.post('/workspace', async (request, reply) => {
   return workspaceService.create(request.body);
 });
 
-server.get('/workspace/:workspaceId', async (request, reply) => {
-  const workspaceId = (request.params as any).workspaceId;
-  return workspaceService.getWorkspaceById(workspaceId);
+server.get('/workspace/namespace/:namespace/subscribe', async (request, reply) => {
+  const namespace = (request.params as any).namespace;
+  workspaceService.subscribeToNamespace(namespace, reply);
 });
 
-server.patch('/workspace/:workspaceId', async (request, reply) => {
-  const workspaceId = (request.params as any).workspaceId;
+server.delete('/workspace/namespace/:namespace/subscribe', async (request, reply) => {
+  const namespace = (request.params as any).namespace;
+  workspaceService.unsubscribeFromNamespace(namespace);
+});
+
+server.get('/workspace/namespace/:namespace/:workspaceName', async (request, reply) => {
+  const namespace = (request.params as any).namespace;
+  const workspaceName = (request.params as any).workspaceName;
+  return workspaceService.getWorkspaceByName(namespace, workspaceName);
+});
+
+server.delete('/workspace/namespace/:namespace/:workspaceName', async (request, reply) => {
+  const namespace = (request.params as any).namespace;
+  const workspaceName = (request.params as any).workspaceName;
+  return workspaceService.delete(namespace, workspaceName);
+});
+
+server.patch('/workspace/namespace/:namespace/:workspaceName', async (request, reply) => {
+  const namespace = (request.params as any).namespace;
+  const workspaceName = (request.params as any).workspaceName;
   const { body } = request;
-  console.log(body);
-  return workspaceService.changeWorkspaceStatus(workspaceId, body as boolean);
+  return workspaceService.changeWorkspaceStatus(namespace, workspaceName, (body as any).started as boolean);
 });
 
 server.listen(8080, '0.0.0.0', (err, address) => {

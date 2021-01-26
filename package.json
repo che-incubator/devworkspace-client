@@ -19,7 +19,8 @@
   "dependencies": {
     "@kubernetes/client-node": "^0.13.2",
     "axios": "^0.21.1",
-    "fastify": "^3.10.1"
+    "fastify": "^3.10.1",
+    "fastify-cors": "^5.1.0"
   },
   "devDependencies": {
     "@types/jest": "22.1.3",
