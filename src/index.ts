@@ -19,6 +19,9 @@ server.register(require('fastify-cors'), {
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 });
 
+// tslint:disable-next-line:no-var-requires
+server.register(require('fastify-websocket'));
+
 server.addContentTypeParser('application/merge-patch+json', { parseAs: 'string' }, function (req, body, done) {
   try {
     var json = JSON.parse(body as string);
@@ -31,47 +34,60 @@ server.addContentTypeParser('application/merge-patch+json', { parseAs: 'string' 
 
 const workspaceService = new DevWorkspaceService();
 
-server.post('/namespace/:namespace', async (request, reply) => {
-  const namespace = (request.params as any).namespace;
-  return workspaceService.createNamespace(namespace);
-});
-
 server.get('/workspace/namespace/:namespace', async (request, reply) => {
+  const token = request.headers['authentication'] as string;
   const namespace = (request.params as any).namespace;
-  return workspaceService.getAllWorkspaces(namespace);
+  return workspaceService.getAllWorkspaces(namespace, token);
 });
 
 server.post('/workspace', async (request, reply) => {
-  return workspaceService.create(request.body);
+  const token = request.headers['authentication'] as string;
+  return workspaceService.create(request.body, token);
 });
 
-server.get('/workspace/namespace/:namespace/subscribe', async (request, reply) => {
-  const namespace = (request.params as any).namespace;
-  workspaceService.subscribeToNamespace(namespace, reply);
+// server.get('/workspace/namespace/:namespace/subscribe', async (request, reply) => {
+// });
+
+server.get('/workspace/namespace/:namespace/subscribe', { websocket: true } as any, (connection: any /* SocketStream */, req: any /* FastifyRequest */) => {
+  // const token = request.headers['authentication'] as string;
+  const namespace = (req.params as any).namespace;
+  console.log('hit');
+  return workspaceService.subscribeToNamespace(connection, namespace);
 });
 
 server.delete('/workspace/namespace/:namespace/subscribe', async (request, reply) => {
+  const token = request.headers['authentication'] as string;
   const namespace = (request.params as any).namespace;
-  workspaceService.unsubscribeFromNamespace(namespace);
+  workspaceService.unsubscribeFromNamespace(namespace, token);
 });
 
 server.get('/workspace/namespace/:namespace/:workspaceName', async (request, reply) => {
+  const token = request.headers['authentication'] as string;
   const namespace = (request.params as any).namespace;
   const workspaceName = (request.params as any).workspaceName;
-  return workspaceService.getWorkspaceByName(namespace, workspaceName);
+  return workspaceService.getWorkspaceByName(namespace, workspaceName, token);
 });
 
 server.delete('/workspace/namespace/:namespace/:workspaceName', async (request, reply) => {
+  const token = request.headers['authentication'] as string;
   const namespace = (request.params as any).namespace;
   const workspaceName = (request.params as any).workspaceName;
-  return workspaceService.delete(namespace, workspaceName);
+  return workspaceService.delete(namespace, workspaceName, token);
 });
 
 server.patch('/workspace/namespace/:namespace/:workspaceName', async (request, reply) => {
+  const token = request.headers['authentication'] as string;
   const namespace = (request.params as any).namespace;
   const workspaceName = (request.params as any).workspaceName;
   const { body } = request;
-  return workspaceService.changeWorkspaceStatus(namespace, workspaceName, (body as any).started as boolean);
+  const started = (body as any).started as boolean;
+  return workspaceService.changeWorkspaceStatus(namespace, workspaceName, started, token);
+});
+
+server.post('/namespace/:namespace', async (request, reply) => {
+  const token = request.headers['authentication'] as string;
+  const namespace = (request.params as any).namespace;
+  return workspaceService.createNamespace(namespace, token);
 });
 
 server.listen(8080, '0.0.0.0', (err, address) => {
