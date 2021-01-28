@@ -12,6 +12,11 @@ import { FastifyReply } from 'fastify';
 import { createCluster, createUser } from '../kubeconfig';
 import fetch from 'node-fetch';
 
+export interface IStatusUpdate {
+    workspaceId: string;
+    status?: string;
+    prevStatus?: string;
+}
 export class DevWorkspaceService {
 
     private customObjectAPI: k8s.CustomObjectsApi | undefined;
@@ -25,6 +30,9 @@ export class DevWorkspaceService {
     private keycloakURL: string | undefined;
     private updatingToken: boolean;
     private tokenPromise: any;
+
+    // Map of namespace to workspaceId to status
+    private previousItems: Map<string, Map<string, IStatusUpdate>>;
 
     constructor() {
         this.devworkspaceVersion = 'v1alpha2';
@@ -160,5 +168,39 @@ export class DevWorkspaceService {
         this.customObjectAPI = kc.makeApiClient(k8s.CustomObjectsApi);
         this.watchAPI = new k8s.Watch(kc);
         this.coreAPI = kc.makeApiClient(k8s.CoreV1Api);
+    }
+
+    private createStatusUpdate(devworkspaces: any): IStatusUpdate[] {
+        const newStatusUpdate: IStatusUpdate[] = [];
+        for (const devworkspace of devworkspaces) {
+            const namespace = devworkspace.metadata.namespace;
+            const workspaceId = devworkspace.status.workspaceId;
+            const status = devworkspace.status.phase.toUpperCase();
+
+            const prevWorkspace = this.previousItems.get(namespace);
+            if (prevWorkspace) {
+                const prevStatus = prevWorkspace.get(workspaceId);
+                let newUpdate: IStatusUpdate = {
+                    workspaceId: workspaceId,
+                    status: status,
+                    prevStatus: prevStatus?.status
+                };
+                newStatusUpdate.push(newUpdate);
+                this.previousItems.get(namespace)?.set(workspaceId, newUpdate);
+            } else {
+                // there is not a previous update
+                const newStatus: IStatusUpdate = {
+                    workspaceId,
+                    status: status,
+                    prevStatus: status
+                };
+                newStatusUpdate.push(newStatus);
+
+                const newStatusMap = new Map<string, IStatusUpdate>();
+                newStatusMap.set(workspaceId, newStatus);
+                this.previousItems.set(namespace, newStatusMap);
+            }
+        }
+        return newStatusUpdate;
     }
 }
