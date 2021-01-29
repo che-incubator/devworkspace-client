@@ -11,24 +11,28 @@ import * as k8s from '@kubernetes/client-node';
 import { FastifyReply } from 'fastify';
 import { createCluster, createUser } from '../kubeconfig';
 import fetch from 'node-fetch';
+import { Writable } from 'stream';
+import { IncomingMessage } from 'http';
+import { watch } from 'fs';
 
 export interface IStatusUpdate {
-    workspaceId: string;
+    error?: string;
     status?: string;
     prevStatus?: string;
+    workspaceId: string;
 }
+
 export class DevWorkspaceService {
 
     private customObjectAPI: k8s.CustomObjectsApi | undefined;
     private watchAPI: k8s.Watch | undefined;
-    private coreAPI: k8s.CoreV1Api | undefined;
+    private logsApi: k8s.Log | undefined;
     private devworkspaceVersion: string;
     private group: string;
     private devworkspaceSubresource: string;
     private namespacesWatching: Map<string, any>;
     private expiryDate: Date | undefined;
     private keycloakURL: string | undefined;
-    private updatingToken: boolean;
     private tokenPromise: any;
 
     // Map of namespace to workspaceId to status
@@ -41,23 +45,25 @@ export class DevWorkspaceService {
         this.namespacesWatching = new Map<string, string>();
 
         this.keycloakURL = process.env.KEYCLOAKURL;
-        this.updatingToken = false;
+        this.previousItems = new Map();
     }
 
     async getAllWorkspaces(namespace: string, keycloakToken: string): Promise<any> {
         await this.refreshApi(keycloakToken);
         return this.customObjectAPI!.listNamespacedCustomObject(this.group, this.devworkspaceVersion, namespace, this.devworkspaceSubresource).then(({ response, body }) => {
             return (body as any).items;
-        });
+        }).catch(e => console.log(e));
     }
 
-    async getWorkspaceByName(namespace: string, workspaceName: string, keycloakToken: string): Promise<any> {
+    async getWorkspaceByName(namespace: string, workspaceName: string, keycloakToken: string): Promise<{
+        response: IncomingMessage;
+        body: object;
+    }> {
         await this.refreshApi(keycloakToken);
         return this.customObjectAPI!.getNamespacedCustomObject(this.group, this.devworkspaceVersion, namespace, 'devworkspaces', workspaceName);
     }
 
     async subscribeToNamespace(connection: any, namespace: string): Promise<any> {
-        console.log('setting up connection');
         connection.socket.on('message', async (message: any) => {
             const parsedMessage = JSON.parse(message);
             const token = parsedMessage.keycloakToken;
@@ -71,8 +77,11 @@ export class DevWorkspaceService {
                         allowWatchBookmarks: true,
                     },
                     (type, apiObj, watchObj) => {
-                        // console.log(connection.socket);
-                        connection.socket.send(JSON.stringify(apiObj));
+                        console.log(type);
+                        console.log(apiObj);
+                        console.log(watchObj);
+                        const statusUpdate = this.createStatusUpdate(apiObj);
+                        connection.socket.send(JSON.stringify(statusUpdate));
                     },
                     // tslint:disable-next-line:no-empty
                     () => {},
@@ -85,7 +94,7 @@ export class DevWorkspaceService {
         });
     }
 
-    async unsubscribeFromNamespace(namespace: string, token: string): Promise<any> {
+    async unsubscribeFromNamespace(namespace: string): Promise<any> {
         const req = this.namespacesWatching.get(namespace);
         if (req) {
             req.abort();
@@ -96,22 +105,33 @@ export class DevWorkspaceService {
     async createNamespace(namespace: string, keycloakToken: string): Promise<any> {
         await this.refreshApi(keycloakToken);
         // User cannot create namespace. Works when loading from default
-        const kc = new k8s.KubeConfig();
-        kc.loadFromDefault();
-        const corev1 = kc.makeApiClient(k8s.CoreV1Api);
+        // const openshiftRestClient = require('openshift-rest-client').OpenshiftClient;
+        // console.log('attempting to create client');
+        // const client = await openshiftRestClient({ });
+        // console.log('attempting to create namespace');
+        // client.apis['project.openshift.io'].v1.project.post( { body: {
+        //     metadata: {
+        //         name: 'sample'
+        //     }
+        // }}).then((response: any) => {
+        //     console.log(response.body);
+        // });
+        // console.log('finished to create client');
         try {
-            return await corev1.createNamespace({
-                metadata: {
-                    name: namespace
-                }
-            });
+            // return await corev1.createNamespace({
+            //     metadata: {
+            //         name: namespace
+            //     }
+            // });
         } catch (e) {
             // noop
         }
     }
 
-    async create(devfile: any, keycloakToken: string): Promise<any> {
+    async create(devfileStringified: any, keycloakToken: string): Promise<any> {
         await this.refreshApi(keycloakToken);
+        const devfile = JSON.parse(devfileStringified);
+        console.log(devfile);
         return this.customObjectAPI!.createNamespacedCustomObject(this.group, this.devworkspaceVersion, devfile.metadata.namespace, 'devworkspaces', devfile);
     }
 
@@ -154,7 +174,6 @@ export class DevWorkspaceService {
                     const expired = token.expires_in; // the unit it seconds. defaults to 86400 seconds or 24 hours
                     this.expiryDate = new Date(currentDate.getTime() + (expired * 1000));
                     this.refreshKubeConfig(token.access_token);
-                    console.log('wat');
                     resolve(undefined);
                 });
             });
@@ -164,43 +183,41 @@ export class DevWorkspaceService {
 
     private refreshKubeConfig(token: string) {
         const kc = new k8s.KubeConfig();
+        console.log('creating a user');
+        console.log(token);
         kc.loadFromClusterAndUser(createCluster(), createUser(token));
         this.customObjectAPI = kc.makeApiClient(k8s.CustomObjectsApi);
         this.watchAPI = new k8s.Watch(kc);
-        this.coreAPI = kc.makeApiClient(k8s.CoreV1Api);
+        this.logsApi = new k8s.Log(kc);
     }
 
-    private createStatusUpdate(devworkspaces: any): IStatusUpdate[] {
-        const newStatusUpdate: IStatusUpdate[] = [];
-        for (const devworkspace of devworkspaces) {
-            const namespace = devworkspace.metadata.namespace;
-            const workspaceId = devworkspace.status.workspaceId;
-            const status = devworkspace.status.phase.toUpperCase();
+    private createStatusUpdate(devworkspace: any): IStatusUpdate {
+        const namespace = devworkspace.metadata.namespace;
+        const workspaceId = devworkspace.status.workspaceId;
+        const status = devworkspace.status.phase.toUpperCase();
 
-            const prevWorkspace = this.previousItems.get(namespace);
-            if (prevWorkspace) {
-                const prevStatus = prevWorkspace.get(workspaceId);
-                let newUpdate: IStatusUpdate = {
-                    workspaceId: workspaceId,
-                    status: status,
-                    prevStatus: prevStatus?.status
-                };
-                newStatusUpdate.push(newUpdate);
-                this.previousItems.get(namespace)?.set(workspaceId, newUpdate);
-            } else {
-                // there is not a previous update
-                const newStatus: IStatusUpdate = {
-                    workspaceId,
-                    status: status,
-                    prevStatus: status
-                };
-                newStatusUpdate.push(newStatus);
+        const prevWorkspace = this.previousItems.get(namespace);
+        if (prevWorkspace) {
+            const prevStatus = prevWorkspace.get(workspaceId);
+            let newUpdate: IStatusUpdate = {
+                workspaceId: workspaceId,
+                status: status,
+                prevStatus: prevStatus?.status
+            };
+            this.previousItems.get(namespace)?.set(workspaceId, newUpdate);
+            return newUpdate;
+        } else {
+            // there is not a previous update
+            const newStatus: IStatusUpdate = {
+                workspaceId,
+                status: status,
+                prevStatus: status
+            };
 
-                const newStatusMap = new Map<string, IStatusUpdate>();
-                newStatusMap.set(workspaceId, newStatus);
-                this.previousItems.set(namespace, newStatusMap);
-            }
+            const newStatusMap = new Map<string, IStatusUpdate>();
+            newStatusMap.set(workspaceId, newStatus);
+            this.previousItems.set(namespace, newStatusMap);
+            return newStatus;
         }
-        return newStatusUpdate;
     }
 }

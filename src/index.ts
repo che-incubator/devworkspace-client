@@ -45,20 +45,14 @@ server.post('/workspace', async (request, reply) => {
   return workspaceService.create(request.body, token);
 });
 
-// server.get('/workspace/namespace/:namespace/subscribe', async (request, reply) => {
-// });
-
 server.get('/workspace/namespace/:namespace/subscribe', { websocket: true } as any, (connection: any /* SocketStream */, req: any /* FastifyRequest */) => {
-  // const token = request.headers['authentication'] as string;
   const namespace = (req.params as any).namespace;
-  console.log('hit');
   return workspaceService.subscribeToNamespace(connection, namespace);
 });
 
 server.delete('/workspace/namespace/:namespace/subscribe', async (request, reply) => {
-  const token = request.headers['authentication'] as string;
   const namespace = (request.params as any).namespace;
-  workspaceService.unsubscribeFromNamespace(namespace, token);
+  workspaceService.unsubscribeFromNamespace(namespace);
 });
 
 server.get('/workspace/namespace/:namespace/:workspaceName', async (request, reply) => {
