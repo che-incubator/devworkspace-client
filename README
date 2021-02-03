@@ -1,2 +1,0 @@
-Run/build locally with:
-yarn run build && NODE_TLS_REJECT_UNAUTHORIZED='0' KUBERNETES_SERVICE_HOST=api.crc.testing KUBERNETES_SERVICE_PORT=6443 KEYCLOAKURL=https://keycloak-eclipse-che.apps-crc.testing/auth/realms/che/broker/openshift-v4/token node dist/index.js
