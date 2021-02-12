@@ -2,7 +2,7 @@ const path = require('path');
 
 var server = {
     entry: './src/index.ts',
-    devtool: 'source-map',
+    devtool: 'eval-source-map',
     module: {
         rules: [
             {
@@ -31,7 +31,7 @@ var server = {
 
 var client = {
     entry: './src/index.ts',
-    devtool: 'source-map',
+    devtool: 'eval-source-map',
     module: {
         rules: [
             {

@@ -6,7 +6,7 @@
   "browser": "dist/client.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "rimraf dist && webpack-cli --mode production --config webpack.config.js",
+    "build": "rimraf dist && webpack-cli --mode development --config webpack.config.js",
     "prepare": "yarn run build",
     "test": "jest"
   },

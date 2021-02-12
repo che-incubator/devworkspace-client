@@ -10,37 +10,80 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
+import * as yaml from 'js-yaml';
+
+interface IDevWorkspaceConversionTemplate {
+    projects?: any;
+    components?: any;
+    commands?: any;
+    events?: any;
+}
+
+interface IDevWorkspaceDevfileConversionTemplate {
+    schemaVersion: any;
+    metadata: {
+        name: string;
+        namespace: string;
+    };
+    projects?: any;
+    components?: any;
+    commands?: any;
+    events?: any;
+}
+
 export function devfileToDevWorkspace(devfile: any) {
-    return {
+    const template = {
         apiVersion: 'workspace.devfile.io/v1alpha2',
         kind: 'DevWorkspace',
         metadata: devfile.metadata,
         spec: {
-            template: {
-                projects: devfile.projects || [],
-                components: devfile.components || [],
-                commands: devfile.commands || [],
-                events: devfile.events || []
-            }
+            started: true,
+            template: {} as IDevWorkspaceConversionTemplate
         }
     };
+    if (devfile.projects) {
+        template.spec.template.projects = devfile.projects;
+    }
+    if (devfile.components) {
+        template.spec.template.components = devfile.components;
+    }
+    if (devfile.commands) {
+        template.spec.template.commands = devfile.commands;
+    }
+    if (devfile.events) {
+        template.spec.template.events = devfile.events;
+    }
+    return jsonToYAMLDevfile(template);
 }
 
 export function devWorkspaceToDevfile(devworkspace: any) {
-    return {
+    const template = {
         schemaVersion: '2.0.0',
         metadata: {
             name: devworkspace.metadata.name,
             namespace: devworkspace.metadata.namespace
         },
-        projects: devworkspace.spec.template.projects || [],
-        components: devworkspace.spec.template.components || [],
-        commands: devworkspace.spec.template.commands || [],
-        events: devworkspace.spec.template.events || []
-    };
+    } as IDevWorkspaceDevfileConversionTemplate;
+    if (devworkspace.spec.template.projects) {
+        template.projects = devworkspace.spec.template.projects;
+    }
+    if (devworkspace.spec.template.components) {
+        template.components = devworkspace.spec.template.components;
+    }
+    if (devworkspace.spec.template.commands) {
+        template.commands = devworkspace.spec.template.commands;
+    }
+    if (devworkspace.spec.template.events) {
+        template.events = devworkspace.spec.template.events;
+    }
+    return jsonToYAMLDevfile(template);
 }
 
-export function convertV1EditorsToV2() {
-
+function jsonToYAMLDevfile(template: any) {
+    try {
+        const devfileYAML = yaml.load(JSON.stringify(template));
+        return devfileYAML;
+    } catch (e) {
+        throw new Error('Errored when attempting to convert json devfile into yaml: ' + e);
+    }
 }
-

@@ -11,14 +11,14 @@
  */
 
 import { AxiosInstance } from 'axios';
+import { createKubernetesComponent, hasEditor, pluginsToInject } from './injector';
 import { devfileToDevWorkspace } from './converter';
 import { delay } from './helper';
-import * as yaml from 'js-yaml';
 
 export interface IDevWorkspaceApi {
   getAllWorkspaces(defaultNamespace: string): Promise<any>;
   getWorkspaceByName(namespace: string, workspaceName: string): Promise<any>;
-  create(devfile: any): Promise<any>;
+  create(devfile: any, defaultEditor?: any, defaultPlugins?: any[]): Promise<any>;
   delete(namespace: string, name: string): Promise<any>;
   changeWorkspaceStatus(workspace: any, started: boolean): Promise<any>;
 }
@@ -52,8 +52,29 @@ export class DevWorkspaceApi implements IDevWorkspaceApi {
       });
   }
 
-  create(devfile: any): Promise<any> {
+  create(devfile: any, defaultEditor?: any, defaultPlugins?: any[]): Promise<any> {
     const devworkspace = devfileToDevWorkspace(devfile);
+
+    // if no editor has been defined then create and add a defaultEditor component
+    console.log('checking editor');
+    if (defaultEditor && !hasEditor(devfile)) {
+      console.log('editor not found pushing');
+      console.log(createKubernetesComponent(defaultEditor));
+      devworkspace.spec.template.components.push(createKubernetesComponent(defaultEditor));
+    }
+
+    const pluginsNeeded = defaultPlugins ? pluginsToInject(devfile, defaultPlugins) : [];
+    console.log('checking plugins');
+    if (pluginsNeeded.length > 0) {
+      for (const plugin of pluginsNeeded) {
+        console.log('plugin not found pushing');
+        console.log(createKubernetesComponent(plugin));
+        devworkspace.spec.template.components.push(createKubernetesComponent(plugin));
+      }
+    }
+
+    console.log(devworkspace);
+
     return this.axios
       .post(
         `/api/unsupported/k8s/apis/workspace.devfile.io/v1alpha2/namespaces/${devfile.metadata.namespace}/devworkspaces`,
@@ -65,6 +86,7 @@ export class DevWorkspaceApi implements IDevWorkspaceApi {
         }
       )
       .then(async (resp: any) => {
+        console.log('attempting to get status');
         // We need to wait until the devworkspace has a status property
         let found;
         let count = 0;
@@ -73,6 +95,7 @@ export class DevWorkspaceApi implements IDevWorkspaceApi {
             devfile.metadata.namespace,
             devfile.metadata.name
           );
+          console.log(potentialWorkspace);
           if (potentialWorkspace?.status) {
             found = potentialWorkspace;
           } else {
