@@ -18,7 +18,7 @@ describe('testing sample conversions', () => {
 
     describe('devfile to devworkspace', () => {
         test('the sample-devfile fixture should convert into sample-devworkspace fixture', () => {
-            const input = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-devfile.yaml', 'utf-8'));
+            const input: any = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-devfile.yaml', 'utf-8'));
             const output = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-devworkspace.yaml', 'utf-8'));
             expect(devfileToDevWorkspace(input)).toStrictEqual(output);
         });
@@ -26,7 +26,7 @@ describe('testing sample conversions', () => {
 
     describe('devworkspace to devfile', () => {
         test('the sample-devworkspace fixture should convert into sample-devfile fixture', () => {
-            const input = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-devworkspace.yaml', 'utf-8'));
+            const input: any = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-devworkspace.yaml', 'utf-8'));
             const output = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-devfile.yaml', 'utf-8'));
             expect(devWorkspaceToDevfile(input)).toStrictEqual(output);
         });

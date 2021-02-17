@@ -14,6 +14,8 @@ import { AxiosInstance } from 'axios';
 import { DevWorkspaceApi } from './api';
 
 export * from './converter';
+export * from './types';
+
 export class DevWorkspaceClient {
 
     public static getApi(axios: AxiosInstance) {

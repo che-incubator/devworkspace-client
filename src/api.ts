@@ -11,119 +11,111 @@
  */
 
 import { AxiosInstance } from 'axios';
-import { createKubernetesComponent, hasEditor, pluginsToInject } from './injector';
+import {
+  createKubernetesComponent,
+  hasEditor,
+  pluginsToInject,
+} from './injector';
 import { devfileToDevWorkspace } from './converter';
+import { IDevWorkspace, IDevWorkspaceDevfile, IKubernetesGroupsModel } from './types';
 import { delay } from './helper';
-
-export interface IDevWorkspaceApi {
-  getAllWorkspaces(defaultNamespace: string): Promise<any>;
-  getWorkspaceByName(namespace: string, workspaceName: string): Promise<any>;
-  create(devfile: any, defaultEditor?: any, defaultPlugins?: any[]): Promise<any>;
-  delete(namespace: string, name: string): Promise<any>;
-  changeWorkspaceStatus(workspace: any, started: boolean): Promise<any>;
-}
+import { IDevWorkspaceApi } from './index';
 
 export class DevWorkspaceApi implements IDevWorkspaceApi {
   private axios: AxiosInstance;
+  private openshiftIdentifier = 'project.openshift.io';
+  private devworkspaceIdentifier = 'workspace.devfile.io';
+  private apiEnabled: boolean | undefined;
+  private isOpenshiftCluster: boolean | undefined;
 
   constructor(axios: AxiosInstance) {
     this.axios = axios;
   }
 
-  getAllWorkspaces(defaultNamespace: string): Promise<any> {
-    return this.axios
-      .get(
-        `/api/unsupported/k8s/apis/workspace.devfile.io/v1alpha2/namespaces/${defaultNamespace}/devworkspaces`
-      )
-      .then((resp: any) => resp.data.items)
-      .catch((e) => {
-        throw new Error(e);
-      });
+  async getAllWorkspaces(defaultNamespace: string): Promise<IDevWorkspace[]> {
+    const resp = await this.axios.get(
+      `/apis/workspace.devfile.io/v1alpha2/namespaces/${defaultNamespace}/devworkspaces`
+    );
+    return resp.data.items;
   }
 
-  getWorkspaceByName(namespace: string, workspaceName: string): Promise<any> {
-    return this.axios
-      .get(
-        `/api/unsupported/k8s/apis/workspace.devfile.io/v1alpha2/namespaces/${namespace}/devworkspaces/${workspaceName}`
-      )
-      .then((resp: any) => resp.data)
-      .catch((e) => {
-        throw new Error(e);
-      });
+  async getWorkspaceByName(
+    namespace: string,
+    workspaceName: string
+  ): Promise<IDevWorkspace> {
+    const resp = await this.axios.get(
+      `/apis/workspace.devfile.io/v1alpha2/namespaces/${namespace}/devworkspaces/${workspaceName}`
+    );
+    return resp.data;
   }
 
-  create(devfile: any, defaultEditor?: any, defaultPlugins?: any[]): Promise<any> {
+  async create(
+    devfile: IDevWorkspaceDevfile,
+    defaultEditor?: string,
+    defaultPlugins?: string[]
+  ): Promise<IDevWorkspace> {
     const devworkspace = devfileToDevWorkspace(devfile);
 
-    // if no editor has been defined then create and add a defaultEditor component
-    console.log('checking editor');
     if (defaultEditor && !hasEditor(devfile)) {
-      console.log('editor not found pushing');
-      console.log(createKubernetesComponent(defaultEditor));
-      devworkspace.spec.template.components.push(createKubernetesComponent(defaultEditor));
+      devworkspace.spec.template.components.push(
+        createKubernetesComponent(defaultEditor)
+      );
     }
 
-    const pluginsNeeded = defaultPlugins ? pluginsToInject(devfile, defaultPlugins) : [];
-    console.log('checking plugins');
+    const pluginsNeeded = defaultPlugins
+      ? pluginsToInject(devfile, defaultPlugins)
+      : [];
     if (pluginsNeeded.length > 0) {
       for (const plugin of pluginsNeeded) {
-        console.log('plugin not found pushing');
-        console.log(createKubernetesComponent(plugin));
-        devworkspace.spec.template.components.push(createKubernetesComponent(plugin));
+        devworkspace.spec.template.components.push(
+          createKubernetesComponent(plugin)
+        );
       }
     }
 
-    console.log(devworkspace);
+    const stringifiedDevWorkspace = JSON.stringify(devworkspace);
 
-    return this.axios
-      .post(
-        `/api/unsupported/k8s/apis/workspace.devfile.io/v1alpha2/namespaces/${devfile.metadata.namespace}/devworkspaces`,
-        devworkspace,
-        {
-            headers: {
-                'content-type': 'application/json; charset=utf-8'
-            }
-        }
-      )
-      .then(async (resp: any) => {
-        console.log('attempting to get status');
-        // We need to wait until the devworkspace has a status property
-        let found;
-        let count = 0;
-        while (count < 5 && !found) {
-          const potentialWorkspace = await this.getWorkspaceByName(
-            devfile.metadata.namespace,
-            devfile.metadata.name
-          );
-          console.log(potentialWorkspace);
-          if (potentialWorkspace?.status) {
-            found = potentialWorkspace;
-          } else {
-            count += 1;
-            delay();
-          }
-        }
-        if (!found) {
-          throw new Error('Was not able to get workspace status');
-        }
-        return found;
-      })
-      .catch((resp: any) => {
-        throw new Error(resp.response.data.message);
-      });
+    const resp = await this.axios.post(
+      `/apis/workspace.devfile.io/v1alpha2/namespaces/${devfile.metadata.namespace}/devworkspaces`,
+      stringifiedDevWorkspace,
+      {
+        headers: {
+          'content-type': 'application/json; charset=utf-8',
+        },
+      }
+    );
+
+    const responseData = await resp.data;
+    const namespace = responseData.metadata.namespace;
+    const name = responseData.metadata.name;
+
+    // We need to wait until the devworkspace has a status property
+    let found;
+    let count = 0;
+    while (count < 5 && !found) {
+      const potentialWorkspace = await this.getWorkspaceByName(namespace, name);
+      if (potentialWorkspace?.status) {
+        found = potentialWorkspace;
+      } else {
+        count += 1;
+        delay();
+      }
+    }
+    if (!found) {
+      throw new Error(
+        `Was not able to find a workspace with name ${name} in namespace ${namespace}`
+      );
+    }
+    return found;
   }
 
-  delete(namespace: string, name: string): Promise<any> {
-    return this.axios
-      .delete(
-        `/api/unsupported/k8s/apis/workspace.devfile.io/v1alpha2/namespaces/${namespace}/devworkspaces/${name}`
-      )
-      .catch((e) => {
-        throw new Error(e);
-      });
+  async delete(namespace: string, name: string): Promise<void> {
+    await this.axios.delete(
+      `/apis/workspace.devfile.io/v1alpha2/namespaces/${namespace}/devworkspaces/${name}`
+    );
   }
 
-  changeWorkspaceStatus(workspace: any, started: boolean): Promise<any> {
+  async changeWorkspaceStatus(namespace: string, name: string, started: boolean): Promise<IDevWorkspace> {
     const patch = [
       {
         path: '/spec/started',
@@ -132,19 +124,67 @@ export class DevWorkspaceApi implements IDevWorkspaceApi {
       },
     ];
 
-    return this.axios
-      .patch(
-        `/api/unsupported/k8s/apis/workspace.devfile.io/v1alpha2/namespaces/${workspace.metadata.namespace}/devworkspaces/${workspace.metadata.name}`,
-        patch,
-        {
-            headers: {
-                'Content-type': 'application/json-patch+json'
-            }
-        }
-      )
-      .then((resp: any) => resp.data)
-      .catch((e) => {
-        throw new Error(e);
-      });
+    const resp = await this.axios.patch(
+      `/apis/workspace.devfile.io/v1alpha2/namespaces/${namespace}/devworkspaces/${name}`,
+      patch,
+      {
+        headers: {
+          'Content-type': 'application/json-patch+json',
+        },
+      }
+    );
+    return resp.data;
+  }
+
+  async initializeNamespace(namespace: string): Promise<void> {
+    const isOpenShift = await this.isOpenShift();
+    if (isOpenShift) {
+      const doesProjectAlreadyExist = await this.doesProjectExist(namespace);
+      if (!doesProjectAlreadyExist) {
+        this.createProject(namespace);
+      }
+    }
+  }
+
+  private async doesProjectExist(projectName: string): Promise<boolean> {
+    try {
+      await this.axios.get(`/apis/project.openshift.io/v1/projects/${projectName}`);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  private createProject(namespace: string): void {
+    // todo add the current user to the role if we can. Do we even have access to the current user?
+    this.axios.post('/apis/project.openshift.io/v1/projectrequests', {
+      apiVersion: 'project.openshift.io/v1',
+      kind: 'ProjectRequest',
+      metadata: {
+        name: namespace,
+      },
+    });
+  }
+
+  async isApiEnabled(): Promise<boolean> {
+    if (this.apiEnabled !== undefined) {
+      return Promise.resolve(this.apiEnabled);
+    }
+    this.apiEnabled = await this.findApi(this.devworkspaceIdentifier);
+    return this.apiEnabled;
+  }
+
+  private async isOpenShift(): Promise<boolean> {
+    if (this.isOpenshiftCluster !== undefined) {
+      return Promise.resolve(this.isOpenshiftCluster);
+    }
+    this.isOpenshiftCluster = await this.findApi(this.openshiftIdentifier);
+    return this.isOpenshiftCluster;
+  }
+
+  private async findApi(apiName: string): Promise<boolean> {
+    const resp = await this.axios.get('/apis');
+    const responseData = await resp.data.groups;
+    return responseData.filter((x: IKubernetesGroupsModel) => x.name === apiName).length > 0;
   }
 }

@@ -10,18 +10,12 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-const componentAttribute = 'app.kubernetes.io/component';
-
 /**
  * Check the devfile to see an editor already exists
  * @param devfile a v2 devfile
  */
 export function hasEditor(devfile: any): boolean {
-    for (const component of devfile.components) {
-        if (component.attributes && component.attributes[componentAttribute] === 'editor') {
-            return true;
-        }
-    }
+    // no-op for now
     return false;
 }
 
@@ -68,5 +62,5 @@ export function createKubernetesComponent(componentName: string) {
                 namespace: 'devworkspace-plugins'
             }
         }
-    }
+    };
 }

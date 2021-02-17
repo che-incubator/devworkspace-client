@@ -10,37 +10,19 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import * as yaml from 'js-yaml';
+import { IDevWorkspace, IDevWorkspaceDevfile } from './types';
 
-interface IDevWorkspaceConversionTemplate {
-    projects?: any;
-    components?: any;
-    commands?: any;
-    events?: any;
-}
-
-interface IDevWorkspaceDevfileConversionTemplate {
-    schemaVersion: any;
-    metadata: {
-        name: string;
-        namespace: string;
-    };
-    projects?: any;
-    components?: any;
-    commands?: any;
-    events?: any;
-}
-
-export function devfileToDevWorkspace(devfile: any) {
+export function devfileToDevWorkspace(devfile: IDevWorkspaceDevfile): IDevWorkspace {
+    devfile.metadata.annotations = {};
     const template = {
         apiVersion: 'workspace.devfile.io/v1alpha2',
         kind: 'DevWorkspace',
         metadata: devfile.metadata,
         spec: {
             started: true,
-            template: {} as IDevWorkspaceConversionTemplate
+            template: {}
         }
-    };
+    } as IDevWorkspace;
     if (devfile.projects) {
         template.spec.template.projects = devfile.projects;
     }
@@ -53,17 +35,17 @@ export function devfileToDevWorkspace(devfile: any) {
     if (devfile.events) {
         template.spec.template.events = devfile.events;
     }
-    return jsonToYAMLDevfile(template);
+    return template;
 }
 
-export function devWorkspaceToDevfile(devworkspace: any) {
+export function devWorkspaceToDevfile(devworkspace: IDevWorkspace): IDevWorkspaceDevfile {
     const template = {
         schemaVersion: '2.0.0',
         metadata: {
             name: devworkspace.metadata.name,
             namespace: devworkspace.metadata.namespace
         },
-    } as IDevWorkspaceDevfileConversionTemplate;
+    } as IDevWorkspaceDevfile;
     if (devworkspace.spec.template.projects) {
         template.projects = devworkspace.spec.template.projects;
     }
@@ -76,14 +58,5 @@ export function devWorkspaceToDevfile(devworkspace: any) {
     if (devworkspace.spec.template.events) {
         template.events = devworkspace.spec.template.events;
     }
-    return jsonToYAMLDevfile(template);
-}
-
-function jsonToYAMLDevfile(template: any) {
-    try {
-        const devfileYAML = yaml.load(JSON.stringify(template));
-        return devfileYAML;
-    } catch (e) {
-        throw new Error('Errored when attempting to convert json devfile into yaml: ' + e);
-    }
+    return template;
 }

@@ -1,6 +1,7 @@
 schemaVersion: 2.0.0
 metadata:
   name: nodejs-stack
+  namespace: sample
 projects:
   - name: project    
     git:
