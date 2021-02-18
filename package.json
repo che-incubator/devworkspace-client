@@ -38,9 +38,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jpinkney/devworkspace-client"
+    "url": "https://github.com/che-incubator/devworkspace-client"
   },
   "bugs": {
-    "url": "ttps://github.com/jpinkney/devworkspace-client/issues"
+    "url": "https://github.com/che-incubator/devworkspace-client/issues"
   }
 }
