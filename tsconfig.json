@@ -6,7 +6,9 @@
         "module": "commonjs",
         "declaration": true,
         "outDir": ".",
-        "baseUrl": "src"
+        "baseUrl": "src",
+        "skipLibCheck": true,
+        "sourceMap": true
     },
     "exclude": [
         "node_modules",

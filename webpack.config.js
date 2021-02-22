@@ -1,8 +1,9 @@
 const path = require('path');
+var nodeExternals = require('webpack-node-externals');
 
 var server = {
     entry: './src/index.ts',
-    devtool: 'eval-source-map',
+    devtool: 'source-map',
     module: {
         rules: [
             {
@@ -26,12 +27,12 @@ var server = {
         libraryTarget: 'umd',
         globalObject: 'this',
         path: path.resolve(__dirname, 'dist')
-    }
+    },
 };
 
 var client = {
     entry: './src/index.ts',
-    devtool: 'eval-source-map',
+    devtool: 'source-map',
     module: {
         rules: [
             {
@@ -49,10 +50,14 @@ var client = {
         extensions: ['.ts', '.js']
     },
     target: 'web',
+    externals: [nodeExternals()],
     node: {
         fs: 'empty',
         net: 'empty',
-        tls: 'empty'
+        tls: 'empty',
+        dns: 'empty',
+        child_process: 'empty',
+        http2: 'empty',
     },
     output: {
         filename: 'client.js',
