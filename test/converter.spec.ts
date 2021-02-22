@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { devfileToDevWorkspace, devWorkspaceToDevfile } from '../src/converter';
+import { devfileToDevWorkspace, devWorkspaceToDevfile } from '../src/common/converter';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 
