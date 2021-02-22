@@ -10,6 +10,9 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-export const delay = (ms = 500) => {
-    return new Promise<void>(resolve => setTimeout(resolve, ms));
-};
+export const devworkspaceVersion = 'v1alpha2';
+export const group = 'workspace.devfile.io';
+export const devworkspaceSubresource = 'devworkspaces';
+
+export const openshiftIdentifier = 'project.openshift.io';
+export const devworkspaceIdentifier = 'workspace.devfile.io';

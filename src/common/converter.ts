@@ -10,12 +10,13 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { IDevWorkspace, IDevWorkspaceDevfile } from './types';
+import { IDevWorkspace, IDevWorkspaceDevfile } from '../types';
+import { devworkspaceVersion, group } from '.';
 
 export function devfileToDevWorkspace(devfile: IDevWorkspaceDevfile): IDevWorkspace {
     devfile.metadata.annotations = {};
     const template = {
-        apiVersion: 'workspace.devfile.io/v1alpha2',
+        apiVersion: `${group}/${devworkspaceVersion}`,
         kind: 'DevWorkspace',
         metadata: devfile.metadata,
         spec: {

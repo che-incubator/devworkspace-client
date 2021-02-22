@@ -11,15 +11,27 @@
  */
 
 import { AxiosInstance } from 'axios';
-import { DevWorkspaceApi } from './api';
+import { RestApi } from './browser';
+import { NodeApi } from './node';
 
-export * from './converter';
+export * from './common/converter';
 export * from './types';
 
 export class DevWorkspaceClient {
 
-    public static getApi(axios: AxiosInstance) {
-        return new DevWorkspaceApi(axios);
+    public static getRestApi(axios: AxiosInstance) {
+        return new RestApi(axios);
+    }
+
+    public static getNodeApi() {
+        if (!this.isItNode()) {
+            throw new Error('getNodeApi is only available when running in nodejs');
+        }
+        return new NodeApi();
+    }
+
+    private static isItNode() {
+        return (typeof process !== 'undefined') && (typeof process.versions.node !== 'undefined');
     }
 
 }

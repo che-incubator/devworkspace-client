@@ -15,16 +15,16 @@ import {
   createKubernetesComponent,
   hasEditor,
   pluginsToInject,
-} from './injector';
-import { devfileToDevWorkspace } from './converter';
-import { IDevWorkspace, IDevWorkspaceDevfile, IKubernetesGroupsModel } from './types';
-import { delay } from './helper';
-import { IDevWorkspaceApi } from './index';
+} from '../common/injector';
+import { devfileToDevWorkspace } from '../common/converter';
+import { IDevWorkspace, IDevWorkspaceDevfile, IKubernetesGroupsModel } from '../types';
+import { delay } from '../common/helper';
+import { IDevWorkspaceApi } from '../index';
+import { devworkspaceIdentifier, devworkspaceVersion, group, openshiftIdentifier } from '../common';
+import { projectRequestModel } from '../common/models';
 
-export class DevWorkspaceApi implements IDevWorkspaceApi {
+export class RestDevWorkspaceApi implements IDevWorkspaceApi {
   private axios: AxiosInstance;
-  private openshiftIdentifier = 'project.openshift.io';
-  private devworkspaceIdentifier = 'workspace.devfile.io';
   private apiEnabled: boolean | undefined;
   private isOpenshiftCluster: boolean | undefined;
 
@@ -34,7 +34,7 @@ export class DevWorkspaceApi implements IDevWorkspaceApi {
 
   async getAllWorkspaces(defaultNamespace: string): Promise<IDevWorkspace[]> {
     const resp = await this.axios.get(
-      `/apis/workspace.devfile.io/v1alpha2/namespaces/${defaultNamespace}/devworkspaces`
+      `/apis/${group}/${devworkspaceVersion}/namespaces/${defaultNamespace}/devworkspaces`
     );
     return resp.data.items;
   }
@@ -44,7 +44,7 @@ export class DevWorkspaceApi implements IDevWorkspaceApi {
     workspaceName: string
   ): Promise<IDevWorkspace> {
     const resp = await this.axios.get(
-      `/apis/workspace.devfile.io/v1alpha2/namespaces/${namespace}/devworkspaces/${workspaceName}`
+      `/apis/${group}/${devworkspaceVersion}/namespaces/${namespace}/devworkspaces/${workspaceName}`
     );
     return resp.data;
   }
@@ -76,7 +76,7 @@ export class DevWorkspaceApi implements IDevWorkspaceApi {
     const stringifiedDevWorkspace = JSON.stringify(devworkspace);
 
     const resp = await this.axios.post(
-      `/apis/workspace.devfile.io/v1alpha2/namespaces/${devfile.metadata.namespace}/devworkspaces`,
+      `/apis/${group}/${devworkspaceVersion}/namespaces/${devfile.metadata.namespace}/devworkspaces`,
       stringifiedDevWorkspace,
       {
         headers: {
@@ -111,7 +111,7 @@ export class DevWorkspaceApi implements IDevWorkspaceApi {
 
   async delete(namespace: string, name: string): Promise<void> {
     await this.axios.delete(
-      `/apis/workspace.devfile.io/v1alpha2/namespaces/${namespace}/devworkspaces/${name}`
+      `/apis/${group}/${devworkspaceVersion}/namespaces/${namespace}/devworkspaces/${name}`
     );
   }
 
@@ -125,7 +125,7 @@ export class DevWorkspaceApi implements IDevWorkspaceApi {
     ];
 
     const resp = await this.axios.patch(
-      `/apis/workspace.devfile.io/v1alpha2/namespaces/${namespace}/devworkspaces/${name}`,
+      `/apis/${group}/${devworkspaceVersion}/namespaces/${namespace}/devworkspaces/${name}`,
       patch,
       {
         headers: {
@@ -148,7 +148,7 @@ export class DevWorkspaceApi implements IDevWorkspaceApi {
 
   private async doesProjectExist(projectName: string): Promise<boolean> {
     try {
-      await this.axios.get(`/apis/project.openshift.io/v1/projects/${projectName}`);
+      await this.axios.get(`/apis/${openshiftIdentifier}/v1/projects/${projectName}`);
       return true;
     } catch (e) {
       return false;
@@ -157,20 +157,14 @@ export class DevWorkspaceApi implements IDevWorkspaceApi {
 
   private createProject(namespace: string): void {
     // todo add the current user to the role if we can. Do we even have access to the current user?
-    this.axios.post('/apis/project.openshift.io/v1/projectrequests', {
-      apiVersion: 'project.openshift.io/v1',
-      kind: 'ProjectRequest',
-      metadata: {
-        name: namespace,
-      },
-    });
+    this.axios.post(`/apis/${openshiftIdentifier}/v1/projectrequests`, projectRequestModel(namespace));
   }
 
   async isApiEnabled(): Promise<boolean> {
     if (this.apiEnabled !== undefined) {
       return Promise.resolve(this.apiEnabled);
     }
-    this.apiEnabled = await this.findApi(this.devworkspaceIdentifier);
+    this.apiEnabled = await this.findApi(devworkspaceIdentifier);
     return this.apiEnabled;
   }
 
@@ -178,7 +172,7 @@ export class DevWorkspaceApi implements IDevWorkspaceApi {
     if (this.isOpenshiftCluster !== undefined) {
       return Promise.resolve(this.isOpenshiftCluster);
     }
-    this.isOpenshiftCluster = await this.findApi(this.openshiftIdentifier);
+    this.isOpenshiftCluster = await this.findApi(openshiftIdentifier);
     return this.isOpenshiftCluster;
   }
 

@@ -24,6 +24,10 @@ export interface IDevWorkspaceApi {
     isApiEnabled(): Promise<boolean>;
 }
 
+export interface IDevWorkspaceClientApi {
+    workspaceApi: IDevWorkspaceApi;
+}
+
 export interface IDevWorkspace {
     apiVersion: string;
     kind: string;
