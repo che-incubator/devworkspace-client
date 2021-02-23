@@ -17,6 +17,11 @@ jobs:
         node-version: 12
         registry-url: 'https://registry.npmjs.org'
 
+      # Configure Git User
+    - run: |
+        git config --global user.email "che-bot@eclipse.org"
+        git config --global user.name "CHE Bot"
+
       # Run install dependencies
     - name: Install dependencies
       run: yarn
