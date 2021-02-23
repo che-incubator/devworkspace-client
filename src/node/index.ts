@@ -13,14 +13,15 @@
 import {
   IDevWorkspaceApi,
   IDevWorkspaceClientApi,
+  INodeConfig,
 } from '../types';
 import { NodeDevWorkspaceApi } from './workspace-api';
 
 export class NodeApi implements IDevWorkspaceClientApi {
   private _workspaceApi: IDevWorkspaceApi;
 
-  constructor() {
-    this._workspaceApi = new NodeDevWorkspaceApi();
+  constructor(config: INodeConfig) {
+    this._workspaceApi = new NodeDevWorkspaceApi(config);
   }
 
   get workspaceApi(): IDevWorkspaceApi {

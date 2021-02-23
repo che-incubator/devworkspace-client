@@ -11,6 +11,7 @@
  */
 
 import { AxiosInstance } from 'axios';
+import { INodeConfig } from './types';
 import { RestApi } from './browser';
 
 export * from './common/converter';
@@ -22,12 +23,14 @@ export class DevWorkspaceClient {
         return new RestApi(axios);
     }
 
-    public static getNodeApi() {
+    public static getNodeApi(config: INodeConfig = {
+        inCluster: true
+    }) {
         if (!DevWorkspaceClient.isItNode()) {
             throw new Error('getNodeApi is only available when running in nodejs');
         } else {
             const nodeApi = require('./node').NodeApi;
-            return new nodeApi();
+            return new nodeApi(config);
         }
     }
 
