@@ -6,7 +6,7 @@ The DevWorkspace Client is a library for interacting with DevWorkspaces on your 
 
 Browser side using kubernetes Rest API:
 ```typescript
-import DevWorkspaceClient from '@eclipse-che/devworkspace-client';
+import { DevWorkspaceClient } from '@eclipse-che/devworkspace-client';
 import axios from 'axios';
 
 const restApiClient = DevWorkspaceClient.getRestApi();
@@ -19,7 +19,7 @@ promise.then((workspaces) => {
 
 Node side using @kubernetes/client-node:
 ```typescript
-import DevWorkspaceClient from '@eclipse-che/devworkspace-client';
+import { DevWorkspaceClient } from '@eclipse-che/devworkspace-client';
 
 const restApiClient = DevWorkspaceClient.getNodeApi();
 const workspaceApi = restApiClient.workspaceApi;
