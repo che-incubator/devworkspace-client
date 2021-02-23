@@ -47,12 +47,12 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
     this.apisApi = kc.makeApiClient(k8s.ApisApi);
   }
 
-  async getAllWorkspaces(defaultNamespace: string): Promise<IDevWorkspace[]> {
+  async getAllWorkspaces(namespace: string): Promise<IDevWorkspace[]> {
     try {
       const resp = await this.customObjectAPI.listNamespacedCustomObject(
         group,
         devworkspaceVersion,
-        defaultNamespace,
+        namespace,
         devworkspaceSubresource
       );
       return (resp.body as any).items as IDevWorkspace[];

@@ -32,9 +32,9 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
     this.axios = axios;
   }
 
-  async getAllWorkspaces(defaultNamespace: string): Promise<IDevWorkspace[]> {
+  async getAllWorkspaces(namespace: string): Promise<IDevWorkspace[]> {
     const resp = await this.axios.get(
-      `/apis/${group}/${devworkspaceVersion}/namespaces/${defaultNamespace}/devworkspaces`
+      `/apis/${group}/${devworkspaceVersion}/namespaces/${namespace}/devworkspaces`
     );
     return resp.data.items;
   }

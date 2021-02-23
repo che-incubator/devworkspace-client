@@ -11,7 +11,7 @@
  */
 
 export interface IDevWorkspaceApi {
-    getAllWorkspaces(defaultNamespace: string): Promise<IDevWorkspace[]>;
+    getAllWorkspaces(namespace: string): Promise<IDevWorkspace[]>;
     getWorkspaceByName(namespace: string, workspaceName: string): Promise<IDevWorkspace>;
     create(
         devfile: IDevWorkspaceDevfile,
