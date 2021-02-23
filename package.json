@@ -19,7 +19,7 @@
   "license": "EPL-2.0",
   "dependencies": {
     "@kubernetes/client-node": "^0.14.0",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "openshift-rest-client": "^5.1.0"
   },
   "devDependencies": {
@@ -30,6 +30,7 @@
     "@types/tunnel": "0.0.1",
     "jest": "^26.6.3",
     "js-yaml": "^4.0.0",
+    "null-loader": "^4.0.1",
     "rimraf": "2.6.2",
     "ts-jest": "^26.5.1",
     "ts-loader": "4.1.0",

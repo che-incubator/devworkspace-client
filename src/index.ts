@@ -12,7 +12,6 @@
 
 import { AxiosInstance } from 'axios';
 import { RestApi } from './browser';
-import { NodeApi } from './node';
 
 export * from './common/converter';
 export * from './types';
@@ -24,10 +23,12 @@ export class DevWorkspaceClient {
     }
 
     public static getNodeApi() {
-        if (!this.isItNode()) {
+        if (!DevWorkspaceClient.isItNode()) {
             throw new Error('getNodeApi is only available when running in nodejs');
+        } else {
+            const nodeApi = require('./node');
+            return new nodeApi();
         }
-        return new NodeApi();
     }
 
     private static isItNode() {

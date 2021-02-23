@@ -34,6 +34,8 @@ export interface IDevWorkspace {
     metadata: {
         name: string;
         namespace: string;
+        creationTimestamp?: string;
+        deletionTimestamp?: string;
     };
     spec: {
         started: boolean;

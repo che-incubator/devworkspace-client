@@ -1,5 +1,4 @@
 const path = require('path');
-var nodeExternals = require('webpack-node-externals');
 
 var server = {
     entry: './src/index.ts',
@@ -43,21 +42,15 @@ var client = {
                     }
                 ],
                 exclude: /node_modules/
-            }
+            },
+            {
+                test: /node/,
+                loader: 'null-loader',
+            },
         ]
     },
     resolve: {
         extensions: ['.ts', '.js']
-    },
-    target: 'web',
-    externals: [nodeExternals()],
-    node: {
-        fs: 'empty',
-        net: 'empty',
-        tls: 'empty',
-        dns: 'empty',
-        child_process: 'empty',
-        http2: 'empty',
     },
     output: {
         filename: 'client.js',
