@@ -156,7 +156,6 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
   }
 
   private createProject(namespace: string): void {
-    // todo add the current user to the role if we can. Do we even have access to the current user?
     this.axios.post(`/apis/${openshiftIdentifier}/v1/projectrequests`, projectRequestModel(namespace));
   }
 
