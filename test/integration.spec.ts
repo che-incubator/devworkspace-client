@@ -16,14 +16,12 @@ import * as yaml from 'js-yaml';
 import { IDevWorkspaceDevfile } from '../src';
 import { delay } from '../src/common/helper';
 import { conditionalTest, isIntegrationTestEnabled } from './utils/suite';
-const openshiftRestClient = require('openshift-rest-client').OpenshiftClient;
 
 describe('DevWorkspace API integration testing against cluster', () => {
 
     describe('Test Node DevWorkspace Api against local cluster', () => {
         conditionalTest('Test run the creation, retrieval, update and deletion of a devworkspace', isIntegrationTestEnabled, async (done: any) => {
             const devWorkspaceApi = new NodeDevWorkspaceApi();
-            const client = await openshiftRestClient();
             const devfile = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-devfile.yaml', 'utf-8')) as IDevWorkspaceDevfile;
             const name = devfile.metadata.name;
             const namespace = devfile.metadata.namespace;
@@ -35,7 +33,7 @@ describe('DevWorkspace API integration testing against cluster', () => {
             // check that the namespace is initialized
             await devWorkspaceApi.initializeNamespace(namespace);
             await delay(5000);
-            const projectExists = await devWorkspaceApi.doesProjectExist(client, namespace);
+            const projectExists = await devWorkspaceApi.doesProjectExist(namespace);
             expect(projectExists).toBe(true);
 
             // check that creation works

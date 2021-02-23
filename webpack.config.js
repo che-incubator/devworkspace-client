@@ -1,5 +1,4 @@
 const path = require('path');
-const CopyPlugin = require("copy-webpack-plugin");
 
 var server = {
     entry: './src/index.ts',
@@ -17,9 +16,6 @@ var server = {
             }
         ]
     },
-    node: {
-        __dirname: false
-    },
     resolve: {
         extensions: ['.ts', '.js'],
     },
@@ -31,17 +27,6 @@ var server = {
         globalObject: 'this',
         path: path.resolve(__dirname, 'dist')
     },
-    plugins: [
-        new CopyPlugin({
-            patterns: [
-              { 
-                  from: 'specs/*.json.gz',
-                  to: path.resolve(__dirname, 'dist'),
-                  context: path.resolve('node_modules', 'openshift-rest-client', 'lib')
-              },
-            ],
-        }),
-    ]
 };
 
 var client = {
