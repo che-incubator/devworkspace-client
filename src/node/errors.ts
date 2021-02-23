@@ -11,26 +11,26 @@
 import { IncomingMessage } from 'http';
 
 export interface IKubernetesIncomingMessage extends IncomingMessage {
-    body: {
-        message: string
-        details: {
-            name: string;
-        }
-    };
+  body: {
+    message: string
+    details: {
+      name: string;
+    }
+  };
 }
 
 // handle incoming creation errors
 export function handleCreationErrors(response: IKubernetesIncomingMessage, namespace: string): Error {
-    if (response.statusCode === 409) {
-        const errorMessage = `Workspace with name "${response.body.details.name}" in namespace "${namespace}" already exists`;
-        throw new Error(errorMessage);
-    }
-    return handleGenericError(response);
+  if (response.statusCode === 409) {
+    const errorMessage = `Workspace with name "${response.body.details.name}" in namespace "${namespace}" already exists`;
+    throw new Error(errorMessage);
+  }
+  return handleGenericError(response);
 }
 
-export function handleGenericError(response: IKubernetesIncomingMessage) : Error {
-    if (response.body && response.body.message) {
-        throw new Error(response.body.message);
-    }
-    throw new Error(response.statusMessage);
+export function handleGenericError(response: IKubernetesIncomingMessage): Error {
+  if (response.body && response.body.message) {
+    throw new Error(response.body.message);
+  }
+  throw new Error(response.statusMessage);
 }

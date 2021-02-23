@@ -13,11 +13,11 @@
 import { openshiftIdentifier } from '.';
 
 export const projectRequestModel = (namespace: string) => {
-    return {
-        apiVersion: `${openshiftIdentifier}/v1`,
-        kind: 'ProjectRequest',
-        metadata: {
-          name: namespace,
-        },
-    };
+  return {
+    apiVersion: `${openshiftIdentifier}/v1`,
+    kind: 'ProjectRequest',
+    metadata: {
+      name: namespace,
+    },
+  };
 };
