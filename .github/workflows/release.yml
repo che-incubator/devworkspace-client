@@ -3,37 +3,34 @@ on:
   push:
     branches:
       - "main"
+
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
+    runs-on: ubuntu-20.04
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
-      # Set up Node
     - name: Use Node 12
       uses: actions/setup-node@v1
       with:
         node-version: 12
         registry-url: 'https://registry.npmjs.org'
+        scope: '@eclipse-che'
 
-      # Run install dependencies
     - name: Install dependencies
       run: yarn
 
-      # Build extension
-    - name: Run build
+    - name: Build extension
       run: yarn build
 
-      # Run tests
     - name: Run Test
       run: yarn test
 
-      # Publish to npm
-    - run: |
+    - name: Publish to npm
+      run: |
+        git config --global user.email "che-bot@eclipse.org"
+        git config --global user.name "CHE Bot"
+        
         yarn --new-version version "0.0.1-$(date +%s)"
         yarn publish --access public
       env:
