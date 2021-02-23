@@ -10,14 +10,8 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { openshiftIdentifier } from '.';
+export const developmentId = 'DEVELOPMENT';
+export const isDevelopmentEnabled = () => developmentId in process.env && process.env[developmentId] === 'true';
 
-export const projectRequestModel = (namespace: string) => {
-  return {
-    apiVersion: `${openshiftIdentifier}/v1`,
-    kind: 'ProjectRequest',
-    metadata: {
-      name: namespace,
-    },
-  };
-};
+export const isInContainer = () => 'KUBERNETES_SERVICE_HOST' in process.env && 'KUBERNETES_SERVICE_PORT' in process.env;
+

@@ -13,6 +13,3 @@
 export const delay = (ms = 500) => {
     return new Promise<void>(resolve => setTimeout(resolve, ms));
 };
-
-export const developmentId = 'DEVELOPMENT';
-export const isDevelopmentEnabled = () => developmentId in process.env && process.env[developmentId] === 'true';

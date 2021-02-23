@@ -15,8 +15,8 @@
  * @param devfile a v2 devfile
  */
 export function hasEditor(devfile: any): boolean {
-    // no-op for now
-    return false;
+  // no-op for now
+  return false;
 }
 
 /**
@@ -26,12 +26,12 @@ export function hasEditor(devfile: any): boolean {
  * @param pluginName the name of the plugin you want to check
  */
 export function hasPlugin(devfile: any, pluginName: any): boolean {
-    for (const component of devfile.components) {
-        if (component.name === pluginName) {
-            return true;
-        }
+  for (const component of devfile.components) {
+    if (component.name === pluginName) {
+      return true;
     }
-    return false;
+  }
+  return false;
 }
 
 /**
@@ -40,13 +40,13 @@ export function hasPlugin(devfile: any, pluginName: any): boolean {
  * @param plugins the plugins you want to inject
  */
 export function pluginsToInject(devfile: any, plugins: any[]) {
-    const pluginsNeeded = [];
-    for (const plugin of plugins) {
-        if (!hasPlugin(devfile, plugin)) {
-            pluginsNeeded.push(plugin);
-        }
+  const pluginsNeeded = [];
+  for (const plugin of plugins) {
+    if (!hasPlugin(devfile, plugin)) {
+      pluginsNeeded.push(plugin);
     }
-    return pluginsNeeded;
+  }
+  return pluginsNeeded;
 }
 
 /**
@@ -54,13 +54,13 @@ export function pluginsToInject(devfile: any, plugins: any[]) {
  * @param componentName The name you want for the kubernetes component
  */
 export function createKubernetesComponent(componentName: string) {
-    return {
+  return {
+    name: componentName,
+    plugin: {
+      kubernetes: {
         name: componentName,
-        plugin: {
-            kubernetes: {
-                name: componentName,
-                namespace: 'devworkspace-plugins'
-            }
-        }
-    };
+        namespace: 'devworkspace-plugins'
+      }
+    }
+  };
 }

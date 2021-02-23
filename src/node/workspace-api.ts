@@ -11,7 +11,11 @@
  */
 
 import * as k8s from '@kubernetes/client-node';
-import { IDevWorkspace, IDevWorkspaceDevfile, IKubernetesGroupsModel } from '../types';
+import {
+  IDevWorkspace,
+  IDevWorkspaceDevfile,
+  IKubernetesGroupsModel,
+} from '../types';
 import { devfileToDevWorkspace, IDevWorkspaceApi } from '../index';
 import {
   devworkspaceSubresource,
@@ -21,12 +25,11 @@ import {
 } from '../common';
 import { projectRequestModel } from '../common/models';
 import { handleGenericError } from './errors';
-import { isDevelopmentEnabled } from '../common/helper';
-// tslint:disable-next-line:no-var-requires
-const openshiftRestClient = require('openshift-rest-client').OpenshiftClient;
+import { isDevelopmentEnabled, isInContainer } from './helper';
 
 export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
   private customObjectAPI: k8s.CustomObjectsApi;
+  private apisApi: k8s.ApisApi;
 
   constructor() {
     const kc = new k8s.KubeConfig();
@@ -34,16 +37,22 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
       kc.loadFromDefault();
     } else {
       kc.loadFromCluster();
+      if (!isInContainer()) {
+        throw new Error(
+          'Recieved error message when attempting to load authentication from cluster. Most likely you are not running inside of a container. Set environment variable DEVELOPMENT=true. See README.md for more details.'
+        );
+      }
     }
     this.customObjectAPI = kc.makeApiClient(k8s.CustomObjectsApi);
+    this.apisApi = kc.makeApiClient(k8s.ApisApi);
   }
 
-  async getAllWorkspaces(defaultNamespace: string): Promise<IDevWorkspace[]> {
+  async getAllWorkspaces(namespace: string): Promise<IDevWorkspace[]> {
     try {
       const resp = await this.customObjectAPI.listNamespacedCustomObject(
         group,
         devworkspaceVersion,
-        defaultNamespace,
+        namespace,
         devworkspaceSubresource
       );
       return (resp.body as any).items as IDevWorkspace[];
@@ -142,13 +151,12 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
   }
 
   async initializeNamespace(namespace: string): Promise<void> {
-    const client = await openshiftRestClient();
     try {
-      const isOpenShift = await this.isOpenShift(client);
+      const isOpenShift = await this.isOpenShift();
       if (isOpenShift) {
-        const doesProjectAlreadyExist = await this.doesProjectExist(client, namespace);
+        const doesProjectAlreadyExist = await this.doesProjectExist(namespace);
         if (!doesProjectAlreadyExist) {
-          this.createProject(client, namespace);
+          this.createProject(namespace);
         }
       }
     } catch (e) {
@@ -156,37 +164,48 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
     }
   }
 
-  async doesProjectExist(client: any, projectName: string): Promise<boolean> {
+  async doesProjectExist(projectName: string): Promise<boolean> {
     try {
-      const p = await client.apis[openshiftIdentifier].v1.projects.get();
-      return p.body.items.filter((x: any) => x.metadata.name === projectName).length > 0;
+      const resp = await this.customObjectAPI.listClusterCustomObject(openshiftIdentifier, 'v1', 'projects');
+      const projectList = (resp.body as any).items;
+      return (
+        projectList.filter((x: any) => x.metadata.name === projectName)
+          .length > 0
+      );
     } catch (e) {
       return false;
     }
   }
 
-  private createProject(client: any, namespace: string): void {
+  private async createProject(namespace: string): Promise<void> {
     try {
-      client.apis[openshiftIdentifier].v1.projectrequests.post({ body: projectRequestModel(namespace) });
+      await this.customObjectAPI.createClusterCustomObject(
+        openshiftIdentifier,
+        'v1',
+        'projectrequests',
+        projectRequestModel(namespace)
+      );
     } catch (e) {
       throw handleGenericError(e);
     }
   }
 
   async isApiEnabled(): Promise<boolean> {
-      // the API is always available on node
-      return Promise.resolve(true);
+    // the API is always available on node
+    return Promise.resolve(true);
   }
 
-  private async isOpenShift(client: any): Promise<boolean> {
-      return this.findApi(client, openshiftIdentifier);
+  private async isOpenShift(): Promise<boolean> {
+    return this.findApi(openshiftIdentifier);
   }
 
-  private async findApi(client: any, apiName: string): Promise<boolean> {
+  private async findApi(apiName: string): Promise<boolean> {
     try {
-      const resp = await client.apis.get();
+      const resp = await this.apisApi.getAPIVersions();
       const groups = await resp.body.groups;
-      const filtered = groups.filter((x: IKubernetesGroupsModel) => x.name === apiName).length > 0;
+      const filtered =
+        groups.filter((x: IKubernetesGroupsModel) => x.name === apiName)
+          .length > 0;
       return Promise.resolve(filtered);
     } catch (e) {
       throw handleGenericError(e);

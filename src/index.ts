@@ -26,7 +26,7 @@ export class DevWorkspaceClient {
         if (!DevWorkspaceClient.isItNode()) {
             throw new Error('getNodeApi is only available when running in nodejs');
         } else {
-            const nodeApi = require('./node');
+            const nodeApi = require('./node').NodeApi;
             return new nodeApi();
         }
     }

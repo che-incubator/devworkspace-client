@@ -17,7 +17,7 @@ var server = {
         ]
     },
     resolve: {
-        extensions: ['.ts', '.js']
+        extensions: ['.ts', '.js'],
     },
     target: 'node',
     output: {
