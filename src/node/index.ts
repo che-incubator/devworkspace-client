@@ -11,16 +11,22 @@
  */
 
 import * as k8s from '@kubernetes/client-node';
+import { devWorkspaceApiGroup, devworkspaceVersion } from '../common';
 import {
   IDevWorkspaceApi,
   IDevWorkspaceClientApi,
+  IDevWorkspaceTemplateApi,
   INodeConfig,
 } from '../types';
-import { isInCluster } from './helper';
+import { findApi, isInCluster } from './helper';
+import { NodeDevWorkspaceTemplateApi } from './template-api';
 import { NodeDevWorkspaceApi } from './workspace-api';
 
 export class NodeApi implements IDevWorkspaceClientApi {
   private _workspaceApi: IDevWorkspaceApi;
+  private _templateApi: IDevWorkspaceTemplateApi;
+  private apisApi: k8s.ApisApi;
+  private apiEnabled: boolean | undefined;
 
   constructor(config: INodeConfig) {
     const kc = new k8s.KubeConfig();
@@ -35,9 +41,23 @@ export class NodeApi implements IDevWorkspaceClientApi {
       kc.loadFromDefault();
     }
     this._workspaceApi = new NodeDevWorkspaceApi(kc);
+    this._templateApi = new NodeDevWorkspaceTemplateApi(kc);
+    this.apisApi = kc.makeApiClient(k8s.ApisApi);
   }
 
   get workspaceApi(): IDevWorkspaceApi {
     return this._workspaceApi;
+  }
+
+  get templateApi(): IDevWorkspaceTemplateApi {
+    return this._templateApi;
+  }
+
+  async isDevWorkspaceApiEnabled(): Promise<boolean> {
+    if (this.apiEnabled !== undefined) {
+      return Promise.resolve(this.apiEnabled);
+    }
+    this.apiEnabled = await findApi(this.apisApi, devWorkspaceApiGroup, devworkspaceVersion);
+    return this.apiEnabled;
   }
 }

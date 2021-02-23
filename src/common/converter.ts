@@ -11,12 +11,12 @@
  */
 
 import { IDevWorkspace, IDevWorkspaceDevfile } from '../types';
-import { devworkspaceVersion, group } from '.';
+import { devworkspaceVersion, devWorkspaceApiGroup } from '.';
 
 export function devfileToDevWorkspace(devfile: IDevWorkspaceDevfile): IDevWorkspace {
     devfile.metadata.annotations = {};
     const template = {
-        apiVersion: `${group}/${devworkspaceVersion}`,
+        apiVersion: `${devWorkspaceApiGroup}/${devworkspaceVersion}`,
         kind: 'DevWorkspace',
         metadata: devfile.metadata,
         spec: {

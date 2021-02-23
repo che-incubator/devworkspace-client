@@ -10,11 +10,11 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { openshiftIdentifier } from '.';
+import { projectApiGroup } from '.';
 
 export const projectRequestModel = (namespace: string) => {
   return {
-    apiVersion: `${openshiftIdentifier}/v1`,
+    apiVersion: `${projectApiGroup}/v1`,
     kind: 'ProjectRequest',
     metadata: {
       name: namespace,

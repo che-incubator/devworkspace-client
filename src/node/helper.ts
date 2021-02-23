@@ -10,4 +10,27 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-export const isInCluster = () => 'KUBERNETES_SERVICE_HOST' in process.env && 'KUBERNETES_SERVICE_PORT' in process.env;
+import * as k8s from '@kubernetes/client-node';
+import { handleGenericError } from './errors';
+
+export function isInCluster() {
+    return 'KUBERNETES_SERVICE_HOST' in process.env && 'KUBERNETES_SERVICE_PORT' in process.env;
+}
+
+export async function findApi(apisApi: k8s.ApisApi, apiName: string, version?: string): Promise<boolean> {
+    try {
+      const resp = await apisApi.getAPIVersions();
+      const groups = await resp.body.groups;
+      const filtered =
+        groups.filter((apiGroup: k8s.V1APIGroup) => {
+          if (version) {
+            return apiGroup.name === apiName && apiGroup.versions.filter(versionGroup => versionGroup.version === version).length > 0;
+          }
+          return apiGroup.name === apiName;
+        })
+          .length > 0;
+      return Promise.resolve(filtered);
+    } catch (e) {
+      throw handleGenericError(e);
+    }
+}
