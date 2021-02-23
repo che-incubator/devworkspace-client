@@ -10,6 +10,8 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-export const delay = (ms = 500) => {
-    return new Promise<void>(resolve => setTimeout(resolve, ms));
-};
+export const developmentId = 'DEVELOPMENT';
+export const isDevelopmentEnabled = () => developmentId in process.env && process.env[developmentId] === 'true';
+
+export const isInContainer = () => 'KUBERNETES_SERVICE_HOST' in process.env && 'KUBERNETES_SERVICE_PORT' in process.env;
+
