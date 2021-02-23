@@ -10,18 +10,31 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
+import * as k8s from '@kubernetes/client-node';
 import {
   IDevWorkspaceApi,
   IDevWorkspaceClientApi,
   INodeConfig,
 } from '../types';
+import { isInCluster } from './helper';
 import { NodeDevWorkspaceApi } from './workspace-api';
 
 export class NodeApi implements IDevWorkspaceClientApi {
   private _workspaceApi: IDevWorkspaceApi;
 
   constructor(config: INodeConfig) {
-    this._workspaceApi = new NodeDevWorkspaceApi(config);
+    const kc = new k8s.KubeConfig();
+    if (config.inCluster) {
+      if (!isInCluster()) {
+        throw new Error(
+          'Recieved error message when attempting to load authentication from cluster. Most likely you are not running inside of a container. Set environment variable DEVELOPMENT=true. See README.md for more details.'
+        );
+      }
+      kc.loadFromCluster();
+    } else {
+      kc.loadFromDefault();
+    }
+    this._workspaceApi = new NodeDevWorkspaceApi(kc);
   }
 
   get workspaceApi(): IDevWorkspaceApi {

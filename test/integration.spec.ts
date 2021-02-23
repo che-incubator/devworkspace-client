@@ -11,8 +11,10 @@
  */
 
 import { NodeDevWorkspaceApi } from '../src/node/workspace-api';
+import { isInCluster } from '../src/node/helper';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
+import * as k8s from '@kubernetes/client-node';
 import { IDevWorkspaceDevfile } from '../src';
 import { delay } from '../src/common/helper';
 import { conditionalTest, isIntegrationTestEnabled } from './utils/suite';
@@ -21,7 +23,13 @@ describe('DevWorkspace API integration testing against cluster', () => {
 
     describe('Test Node DevWorkspace Api against local cluster', () => {
         conditionalTest('Test run the creation, retrieval, update and deletion of a devworkspace', isIntegrationTestEnabled, async (done: any) => {
-            const devWorkspaceApi = new NodeDevWorkspaceApi();
+            const kc = new k8s.KubeConfig();
+            if (isInCluster()) {
+                kc.loadFromCluster();
+            } else {
+                kc.loadFromDefault();
+            }
+            const devWorkspaceApi = new NodeDevWorkspaceApi(kc);
             const devfile = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-devfile.yaml', 'utf-8')) as IDevWorkspaceDevfile;
             const name = devfile.metadata.name;
             const namespace = devfile.metadata.namespace;
