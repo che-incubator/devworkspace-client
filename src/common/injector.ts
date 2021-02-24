@@ -26,6 +26,9 @@ export function hasEditor(devfile: any): boolean {
  * @param pluginName the name of the plugin you want to check
  */
 export function hasPlugin(devfile: any, pluginName: any): boolean {
+  if (!devfile.components) {
+    return false;
+  }
   for (const component of devfile.components) {
     if (component.name === pluginName) {
       return true;
