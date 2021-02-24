@@ -58,6 +58,7 @@ export interface IDevWorkspace {
         ideUrl: string;
         phase: string;
         workspaceId: string;
+        message?: string;
     };
 }
 
