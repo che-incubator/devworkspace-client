@@ -21,7 +21,9 @@ export function devfileToDevWorkspace(devfile: IDevWorkspaceDevfile): IDevWorksp
         metadata: devfile.metadata,
         spec: {
             started: true,
-            template: {}
+            template: {
+                components: []
+            }
         }
     } as IDevWorkspace;
     if (devfile.projects) {

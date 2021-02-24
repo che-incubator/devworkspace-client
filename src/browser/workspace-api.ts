@@ -56,9 +56,6 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
     const devworkspace = devfileToDevWorkspace(devfile);
 
     if (defaultEditor && !hasEditor(devfile)) {
-      if (!devworkspace.spec.template.components) {
-        devworkspace.spec.template.components = [];
-      }
       devworkspace.spec.template.components.push(
         createKubernetesComponent(defaultEditor)
       );
@@ -68,9 +65,6 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
       ? pluginsToInject(devfile, defaultPlugins)
       : [];
     if (pluginsNeeded.length > 0) {
-      if (!devworkspace.spec.template.components) {
-        devworkspace.spec.template.components = [];
-      }
       for (const plugin of pluginsNeeded) {
         devworkspace.spec.template.components.push(
           createKubernetesComponent(plugin)
