@@ -11,21 +11,29 @@
  */
 
 export interface IDevWorkspaceApi {
-    getAllWorkspaces(namespace: string): Promise<IDevWorkspace[]>;
-    getWorkspaceByName(namespace: string, workspaceName: string): Promise<IDevWorkspace>;
+    listInNamespace(namespace: string): Promise<IDevWorkspace[]>;
+    getByName(namespace: string, workspaceName: string): Promise<IDevWorkspace>;
     create(
         devfile: IDevWorkspaceDevfile,
         defaultEditor?: string,
         defaultPlugins?: string[]
     ): Promise<IDevWorkspace>;
     delete(namespace: string, name: string): Promise<void>;
-    changeWorkspaceStatus(namespace: string, name: string, started: boolean): Promise<IDevWorkspace>;
+    changeStatus(namespace: string, name: string, started: boolean): Promise<IDevWorkspace>;
     initializeNamespace(namespace: string): Promise<void>;
-    isApiEnabled(): Promise<boolean>;
+}
+
+export interface IDevWorkspaceTemplateApi {
+    listInNamespace(namespace: string): Promise<IDevWorkspaceTemplate[]>;
+    getByName(namespace: string, workspaceName: string): Promise<IDevWorkspaceTemplate>;
+    delete(namespace: string, name: string): Promise<void>;
+    create(template: IDevWorkspaceTemplate): Promise<IDevWorkspaceTemplate>;
 }
 
 export interface IDevWorkspaceClientApi {
     workspaceApi: IDevWorkspaceApi;
+    templateApi: IDevWorkspaceTemplateApi;
+    isDevWorkspaceApiEnabled(): Promise<boolean>;
 }
 
 export interface IDevWorkspace {
@@ -53,6 +61,16 @@ export interface IDevWorkspace {
     };
 }
 
+export interface IDevWorkspaceTemplate {
+    apiVersion: string;
+    kind: string;
+    metadata: {
+        name: string;
+        namespace: string;
+    };
+    spec: IDevWorkspaceDevfile;
+}
+
 export interface IDevWorkspaceDevfile {
     schemaVersion: string;
     metadata: {
@@ -72,4 +90,7 @@ export interface INodeConfig {
 
 export interface IKubernetesGroupsModel {
     name: string;
+    versions: {
+        version: string;
+    }[];
 }

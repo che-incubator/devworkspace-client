@@ -14,17 +14,19 @@ import * as k8s from '@kubernetes/client-node';
 import {
   IDevWorkspace,
   IDevWorkspaceDevfile,
-  IKubernetesGroupsModel,
 } from '../types';
 import { devfileToDevWorkspace, IDevWorkspaceApi } from '../index';
 import {
   devworkspaceSubresource,
   devworkspaceVersion,
-  group,
-  openshiftIdentifier,
+  devWorkspaceApiGroup,
+  projectApiGroup,
+  projectRequestId,
+  projectsId,
 } from '../common';
 import { projectRequestModel } from '../common/models';
 import { handleGenericError } from './errors';
+import { findApi } from './helper';
 
 export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
   private customObjectAPI: k8s.CustomObjectsApi;
@@ -35,10 +37,10 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
     this.apisApi = kc.makeApiClient(k8s.ApisApi);
   }
 
-  async getAllWorkspaces(namespace: string): Promise<IDevWorkspace[]> {
+  async listInNamespace(namespace: string): Promise<IDevWorkspace[]> {
     try {
       const resp = await this.customObjectAPI.listNamespacedCustomObject(
-        group,
+        devWorkspaceApiGroup,
         devworkspaceVersion,
         namespace,
         devworkspaceSubresource
@@ -49,13 +51,13 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
     }
   }
 
-  async getWorkspaceByName(
+  async getByName(
     namespace: string,
     workspaceName: string
   ): Promise<IDevWorkspace> {
     try {
       const resp = await this.customObjectAPI.getNamespacedCustomObject(
-        group,
+        devWorkspaceApiGroup,
         devworkspaceVersion,
         namespace,
         devworkspaceSubresource,
@@ -76,7 +78,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
       const devworkspace = devfileToDevWorkspace(devfile);
       const namespace = devfile.metadata.namespace;
       const resp = await this.customObjectAPI.createNamespacedCustomObject(
-        group,
+        devWorkspaceApiGroup,
         devworkspaceVersion,
         namespace,
         devworkspaceSubresource,
@@ -91,7 +93,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
   async delete(namespace: string, name: string): Promise<void> {
     try {
       this.customObjectAPI.deleteNamespacedCustomObject(
-        group,
+        devWorkspaceApiGroup,
         devworkspaceVersion,
         namespace,
         devworkspaceSubresource,
@@ -102,7 +104,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
     }
   }
 
-  async changeWorkspaceStatus(
+  async changeStatus(
     namespace: string,
     name: string,
     started: boolean
@@ -121,7 +123,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
         },
       };
       const resp = await this.customObjectAPI.patchNamespacedCustomObject(
-        group,
+        devWorkspaceApiGroup,
         devworkspaceVersion,
         namespace,
         devworkspaceSubresource,
@@ -154,7 +156,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
 
   async doesProjectExist(projectName: string): Promise<boolean> {
     try {
-      const resp = await this.customObjectAPI.listClusterCustomObject(openshiftIdentifier, 'v1', 'projects');
+      const resp = await this.customObjectAPI.listClusterCustomObject(projectApiGroup, 'v1', projectsId);
       const projectList = (resp.body as any).items;
       return (
         projectList.filter((x: any) => x.metadata.name === projectName)
@@ -168,9 +170,9 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
   private async createProject(namespace: string): Promise<void> {
     try {
       await this.customObjectAPI.createClusterCustomObject(
-        openshiftIdentifier,
+        projectApiGroup,
         'v1',
-        'projectrequests',
+        projectRequestId,
         projectRequestModel(namespace)
       );
     } catch (e) {
@@ -178,25 +180,11 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
     }
   }
 
-  async isApiEnabled(): Promise<boolean> {
-    // the API is always available on node
-    return Promise.resolve(true);
-  }
-
   private async isOpenShift(): Promise<boolean> {
-    return this.findApi(openshiftIdentifier);
-  }
-
-  private async findApi(apiName: string): Promise<boolean> {
     try {
-      const resp = await this.apisApi.getAPIVersions();
-      const groups = await resp.body.groups;
-      const filtered =
-        groups.filter((x: IKubernetesGroupsModel) => x.name === apiName)
-          .length > 0;
-      return Promise.resolve(filtered);
+      return findApi(this.apisApi, projectApiGroup);
     } catch (e) {
-      throw handleGenericError(e);
+      return false;
     }
   }
 }

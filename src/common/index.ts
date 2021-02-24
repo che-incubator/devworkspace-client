@@ -11,8 +11,10 @@
  */
 
 export const devworkspaceVersion = 'v1alpha2';
-export const group = 'workspace.devfile.io';
 export const devworkspaceSubresource = 'devworkspaces';
+export const devworkspaceTemplateSubresource = 'devworkspacetemplates';
+export const projectsId = 'projects';
+export const projectRequestId = 'projectrequests';
 
-export const openshiftIdentifier = 'project.openshift.io';
-export const devworkspaceIdentifier = 'workspace.devfile.io';
+export const projectApiGroup = 'project.openshift.io';
+export const devWorkspaceApiGroup = 'workspace.devfile.io';

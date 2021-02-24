@@ -17,34 +17,33 @@ import {
   pluginsToInject,
 } from '../common/injector';
 import { devfileToDevWorkspace } from '../common/converter';
-import { IDevWorkspace, IDevWorkspaceDevfile, IKubernetesGroupsModel } from '../types';
+import { IDevWorkspace, IDevWorkspaceDevfile } from '../types';
 import { delay } from '../common/helper';
 import { IDevWorkspaceApi } from '../index';
-import { devworkspaceIdentifier, devworkspaceVersion, group, openshiftIdentifier } from '../common';
+import { devworkspaceVersion, devWorkspaceApiGroup, projectApiGroup, devworkspaceSubresource, projectRequestId } from '../common';
 import { projectRequestModel } from '../common/models';
+import { isOpenShiftCluster } from './helper';
 
 export class RestDevWorkspaceApi implements IDevWorkspaceApi {
   private axios: AxiosInstance;
-  private apiEnabled: boolean | undefined;
-  private isOpenshiftCluster: boolean | undefined;
 
   constructor(axios: AxiosInstance) {
     this.axios = axios;
   }
 
-  async getAllWorkspaces(namespace: string): Promise<IDevWorkspace[]> {
+  async listInNamespace(namespace: string): Promise<IDevWorkspace[]> {
     const resp = await this.axios.get(
-      `/apis/${group}/${devworkspaceVersion}/namespaces/${namespace}/devworkspaces`
+      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspaceSubresource}`
     );
     return resp.data.items;
   }
 
-  async getWorkspaceByName(
+  async getByName(
     namespace: string,
     workspaceName: string
   ): Promise<IDevWorkspace> {
     const resp = await this.axios.get(
-      `/apis/${group}/${devworkspaceVersion}/namespaces/${namespace}/devworkspaces/${workspaceName}`
+      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspaceSubresource}/${workspaceName}`
     );
     return resp.data;
   }
@@ -76,7 +75,7 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
     const stringifiedDevWorkspace = JSON.stringify(devworkspace);
 
     const resp = await this.axios.post(
-      `/apis/${group}/${devworkspaceVersion}/namespaces/${devfile.metadata.namespace}/devworkspaces`,
+      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${devfile.metadata.namespace}/${devworkspaceSubresource}`,
       stringifiedDevWorkspace,
       {
         headers: {
@@ -89,11 +88,11 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
     const namespace = responseData.metadata.namespace;
     const name = responseData.metadata.name;
 
-    // We need to wait until the devworkspace has a status property
+    // we need to wait until the devworkspace has a status property
     let found;
     let count = 0;
     while (count < 5 && !found) {
-      const potentialWorkspace = await this.getWorkspaceByName(namespace, name);
+      const potentialWorkspace = await this.getByName(namespace, name);
       if (potentialWorkspace?.status) {
         found = potentialWorkspace;
       } else {
@@ -111,11 +110,11 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
 
   async delete(namespace: string, name: string): Promise<void> {
     await this.axios.delete(
-      `/apis/${group}/${devworkspaceVersion}/namespaces/${namespace}/devworkspaces/${name}`
+      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspaceSubresource}/${name}`
     );
   }
 
-  async changeWorkspaceStatus(namespace: string, name: string, started: boolean): Promise<IDevWorkspace> {
+  async changeStatus(namespace: string, name: string, started: boolean): Promise<IDevWorkspace> {
     const patch = [
       {
         path: '/spec/started',
@@ -125,7 +124,7 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
     ];
 
     const resp = await this.axios.patch(
-      `/apis/${group}/${devworkspaceVersion}/namespaces/${namespace}/devworkspaces/${name}`,
+      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspaceSubresource}/${name}`,
       patch,
       {
         headers: {
@@ -137,7 +136,7 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
   }
 
   async initializeNamespace(namespace: string): Promise<void> {
-    const isOpenShift = await this.isOpenShift();
+    const isOpenShift = await isOpenShiftCluster(this.axios);
     if (isOpenShift) {
       const doesProjectAlreadyExist = await this.doesProjectExist(namespace);
       if (!doesProjectAlreadyExist) {
@@ -146,9 +145,9 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
     }
   }
 
-  private async doesProjectExist(projectName: string): Promise<boolean> {
+  async doesProjectExist(projectName: string): Promise<boolean> {
     try {
-      await this.axios.get(`/apis/${openshiftIdentifier}/v1/projects/${projectName}`);
+      await this.axios.get(`/apis/${projectApiGroup}/v1/${projectRequestId}/${projectName}`);
       return true;
     } catch (e) {
       return false;
@@ -156,28 +155,7 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
   }
 
   private createProject(namespace: string): void {
-    this.axios.post(`/apis/${openshiftIdentifier}/v1/projectrequests`, projectRequestModel(namespace));
+    this.axios.post(`/apis/${projectApiGroup}/v1/${projectRequestId}`, projectRequestModel(namespace));
   }
 
-  async isApiEnabled(): Promise<boolean> {
-    if (this.apiEnabled !== undefined) {
-      return Promise.resolve(this.apiEnabled);
-    }
-    this.apiEnabled = await this.findApi(devworkspaceIdentifier);
-    return this.apiEnabled;
-  }
-
-  private async isOpenShift(): Promise<boolean> {
-    if (this.isOpenshiftCluster !== undefined) {
-      return Promise.resolve(this.isOpenshiftCluster);
-    }
-    this.isOpenshiftCluster = await this.findApi(openshiftIdentifier);
-    return this.isOpenshiftCluster;
-  }
-
-  private async findApi(apiName: string): Promise<boolean> {
-    const resp = await this.axios.get('/apis');
-    const responseData = await resp.data.groups;
-    return responseData.filter((x: IKubernetesGroupsModel) => x.name === apiName).length > 0;
-  }
 }
