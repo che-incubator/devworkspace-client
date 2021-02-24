@@ -66,6 +66,10 @@ export interface IDevWorkspaceDevfile {
     events?: any;
 }
 
+export interface INodeConfig {
+    inCluster: boolean;
+}
+
 export interface IKubernetesGroupsModel {
     name: string;
 }

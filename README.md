@@ -44,14 +44,13 @@ promise.then((workspaces) => {
     - Run `yarn test`
 
 ### Integration tests
-Integration tests can be run locally by using `export INTEGRATION_TESTS=true export DEVELOPMENT=true`. Refer to the Environment variables section to learn more.
+Integration tests can be run locally by using `export INTEGRATION_TESTS=true`. Refer to the Environment variables section to learn more.
 
 **The devworkspace-controller must be on the cluster before running the integration tests.**
 
 ### Environment variables
 `INTEGRATION_TESTS`: When the INTEGRATION_TESTS environment variable is defined and it's value is true, the integration tests will run against your currently authenticated cluster.
 
-`DEVELOPMENT`: When the DEVELOPMENT environment variable is set, the authentication for `@kubernetes/client-node` is provided by your default local kubeconfig.
 
 ## License
 

@@ -25,24 +25,12 @@ import {
 } from '../common';
 import { projectRequestModel } from '../common/models';
 import { handleGenericError } from './errors';
-import { isDevelopmentEnabled, isInContainer } from './helper';
 
 export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
   private customObjectAPI: k8s.CustomObjectsApi;
   private apisApi: k8s.ApisApi;
 
-  constructor() {
-    const kc = new k8s.KubeConfig();
-    if (isDevelopmentEnabled()) {
-      kc.loadFromDefault();
-    } else {
-      kc.loadFromCluster();
-      if (!isInContainer()) {
-        throw new Error(
-          'Recieved error message when attempting to load authentication from cluster. Most likely you are not running inside of a container. Set environment variable DEVELOPMENT=true. See README.md for more details.'
-        );
-      }
-    }
+  constructor(kc: k8s.KubeConfig) {
     this.customObjectAPI = kc.makeApiClient(k8s.CustomObjectsApi);
     this.apisApi = kc.makeApiClient(k8s.ApisApi);
   }
