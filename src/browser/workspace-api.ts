@@ -20,7 +20,7 @@ import { devfileToDevWorkspace } from '../common/converter';
 import { IDevWorkspace, IDevWorkspaceDevfile } from '../types';
 import { delay } from '../common/helper';
 import { IDevWorkspaceApi } from '../index';
-import { devworkspaceVersion, devWorkspaceApiGroup, projectApiGroup, devworkspaceSubresource, projectRequestId } from '../common';
+import { devworkspaceVersion, devWorkspaceApiGroup, projectApiGroup, devworkspaceSubresource, projectRequestId, projectsId } from '../common';
 import { projectRequestModel } from '../common/models';
 import { isOpenShiftCluster } from './helper';
 
@@ -153,7 +153,7 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
 
   async doesProjectExist(projectName: string): Promise<boolean> {
     try {
-      await this.axios.get(`/apis/${projectApiGroup}/v1/${projectRequestId}/${projectName}`);
+      await this.axios.get(`/apis/${projectApiGroup}/v1/${projectsId}/${projectName}`);
       return true;
     } catch (e) {
       return false;
