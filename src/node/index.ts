@@ -27,7 +27,7 @@ export class NodeApi implements IDevWorkspaceClientApi {
     if (config.inCluster) {
       if (!isInCluster()) {
         throw new Error(
-          'Recieved error message when attempting to load authentication from cluster. Most likely you are not running inside of a container. Set environment variable DEVELOPMENT=true. See README.md for more details.'
+          'Recieved error message when attempting to load authentication from cluster. Most likely you are not running inside of a container.'
         );
       }
       kc.loadFromCluster();
