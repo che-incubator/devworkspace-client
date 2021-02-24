@@ -147,8 +147,13 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
 
   async doesProjectExist(projectName: string): Promise<boolean> {
     try {
-      await this.axios.get(`/apis/${projectApiGroup}/v1/${projectsId}/${projectName}`);
-      return true;
+      const projects = await this.axios.get(`/apis/${projectApiGroup}/v1/${projectsId}`);
+      for (const proj of projects.data.items) {
+        if (proj.metadata.name === projectName) {
+          return true;
+        }
+      }
+      return false;
     } catch (e) {
       return false;
     }
