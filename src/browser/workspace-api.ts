@@ -26,6 +26,8 @@ import { isOpenShiftCluster } from './helper';
 
 export class RestDevWorkspaceApi implements IDevWorkspaceApi {
   private axios: AxiosInstance;
+  private projectInitRequestTimeoutMs = 10000;
+  private projectRequestDelay = 100;
 
   constructor(axios: AxiosInstance) {
     this.axios = axios;
@@ -141,6 +143,7 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
       const doesProjectAlreadyExist = await this.doesProjectExist(namespace);
       if (!doesProjectAlreadyExist) {
         this.createProject(namespace);
+        await this.waitForProjectToBeReady(namespace);
       }
     }
   }
@@ -161,6 +164,19 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
 
   private createProject(namespace: string): void {
     this.axios.post(`/apis/${projectApiGroup}/v1/${projectRequestId}`, projectRequestModel(namespace));
+  }
+
+  private async waitForProjectToBeReady(namespace: string): Promise<void> {
+    let secondsAttempted = 0;
+    let request = await this.doesProjectExist(namespace);
+    while (secondsAttempted < this.projectInitRequestTimeoutMs && !request) {
+      request = await this.doesProjectExist(namespace);
+      await delay(this.projectRequestDelay);
+      secondsAttempted += this.projectRequestDelay;
+    }
+    if (secondsAttempted === this.projectInitRequestTimeoutMs) {
+      throw new Error(`Project ${namespace} could not be initialized in ${this.projectInitRequestTimeoutMs / 1000} seconds`);
+    }
   }
 
 }
