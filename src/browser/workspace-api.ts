@@ -174,7 +174,7 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
       await delay(this.projectRequestDelayMs);
       millisecondsAttempted += this.projectRequestDelayMs;
     }
-    if (millisecondsAttempted === this.projectInitRequestTimeoutMs) {
+    if (millisecondsAttempted >= this.projectInitRequestTimeoutMs) {
       throw new Error(`Project ${namespace} could not be initialized in ${this.projectInitRequestTimeoutMs / 1000} seconds`);
     }
   }
