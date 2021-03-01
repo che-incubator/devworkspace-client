@@ -21,6 +21,7 @@ export function devfileToDevWorkspace(devfile: IDevWorkspaceDevfile): IDevWorksp
         metadata: devfile.metadata,
         spec: {
             started: true,
+            routingClass: 'che',
             template: {
                 components: []
             }
