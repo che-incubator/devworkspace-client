@@ -6,6 +6,7 @@ metadata:
   annotations: {}
 spec:
   started: true
+  routingClass: che
   template:
     projects:
       - name: project    
