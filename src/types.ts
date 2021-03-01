@@ -47,6 +47,7 @@ export interface IDevWorkspace {
     };
     spec: {
         started: boolean;
+        routingClass: string;
         template: {
             projects?: any;
             components?: any;
