@@ -5,6 +5,7 @@ metadata:
   namespace: sample
   annotations: {}
 spec:
+  routingClass: che
   started: true
   template:
     projects:
