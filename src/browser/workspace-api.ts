@@ -11,16 +11,11 @@
  */
 
 import { AxiosInstance } from 'axios';
-import {
-  createKubernetesComponent,
-  hasEditor,
-  pluginsToInject,
-} from '../common/injector';
 import { devfileToDevWorkspace } from '../common/converter';
 import { IDevWorkspace, IDevWorkspaceDevfile } from '../types';
 import { delay } from '../common/helper';
 import { IDevWorkspaceApi } from '../index';
-import { devworkspaceVersion, devWorkspaceApiGroup, projectApiGroup, devworkspaceSubresource, projectRequestId, projectsId } from '../common';
+import { devworkspaceVersion, devWorkspaceApiGroup, projectApiGroup, devworkspacePluralSubresource, projectRequestId, projectsId } from '../common';
 import { projectRequestModel } from '../common/models';
 import { isOpenShiftCluster } from './helper';
 
@@ -35,7 +30,7 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
 
   async listInNamespace(namespace: string): Promise<IDevWorkspace[]> {
     const resp = await this.axios.get(
-      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspaceSubresource}`
+      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspacePluralSubresource}`
     );
     return resp.data.items;
   }
@@ -45,39 +40,20 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
     workspaceName: string
   ): Promise<IDevWorkspace> {
     const resp = await this.axios.get(
-      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspaceSubresource}/${workspaceName}`
+      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspacePluralSubresource}/${workspaceName}`
     );
     return resp.data;
   }
 
   async create(
     devfile: IDevWorkspaceDevfile,
-    defaultEditor?: string,
-    defaultPlugins?: string[]
+    started = true
   ): Promise<IDevWorkspace> {
-    const devworkspace = devfileToDevWorkspace(devfile);
-
-    if (defaultEditor && !hasEditor(devfile)) {
-      devworkspace.spec.template.components.push(
-        createKubernetesComponent(defaultEditor)
-      );
-    }
-
-    const pluginsNeeded = defaultPlugins
-      ? pluginsToInject(devfile, defaultPlugins)
-      : [];
-    if (pluginsNeeded.length > 0) {
-      for (const plugin of pluginsNeeded) {
-        devworkspace.spec.template.components.push(
-          createKubernetesComponent(plugin)
-        );
-      }
-    }
-
+    const devworkspace = devfileToDevWorkspace(devfile, started);
     const stringifiedDevWorkspace = JSON.stringify(devworkspace);
 
     const resp = await this.axios.post(
-      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${devfile.metadata.namespace}/${devworkspaceSubresource}`,
+      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${devfile.metadata.namespace}/${devworkspacePluralSubresource}`,
       stringifiedDevWorkspace,
       {
         headers: {
@@ -110,9 +86,24 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
     return found;
   }
 
+  async update(devworkspace: IDevWorkspace): Promise<IDevWorkspace> {
+    const name = devworkspace.metadata.name;
+    const namespace = devworkspace.metadata.namespace;
+    const resp = await this.axios.put(
+      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspacePluralSubresource}/${name}`,
+      devworkspace,
+      {
+        headers: {
+          'content-type': 'application/json; charset=utf-8',
+        },
+      }
+    );
+    return resp.data;
+  }
+
   async delete(namespace: string, name: string): Promise<void> {
     await this.axios.delete(
-      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspaceSubresource}/${name}`
+      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspacePluralSubresource}/${name}`
     );
   }
 
@@ -126,7 +117,7 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
     ];
 
     const resp = await this.axios.patch(
-      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspaceSubresource}/${name}`,
+      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspacePluralSubresource}/${name}`,
       patch,
       {
         headers: {

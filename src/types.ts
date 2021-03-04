@@ -15,9 +15,9 @@ export interface IDevWorkspaceApi {
     getByName(namespace: string, workspaceName: string): Promise<IDevWorkspace>;
     create(
         devfile: IDevWorkspaceDevfile,
-        defaultEditor?: string,
-        defaultPlugins?: string[]
+        started?: boolean
     ): Promise<IDevWorkspace>;
+    update(devworkspace: IDevWorkspace): Promise<IDevWorkspace>;
     delete(namespace: string, name: string): Promise<void>;
     changeStatus(namespace: string, name: string, started: boolean): Promise<IDevWorkspace>;
     initializeNamespace(namespace: string): Promise<void>;
@@ -44,6 +44,7 @@ export interface IDevWorkspace {
         namespace: string;
         creationTimestamp?: string;
         deletionTimestamp?: string;
+        uid?: string;
     };
     spec: {
         started: boolean;
@@ -69,8 +70,16 @@ export interface IDevWorkspaceTemplate {
     metadata: {
         name: string;
         namespace: string;
+        ownerReferences: OwnerRefs[];
     };
     spec: IDevWorkspaceDevfile;
+}
+
+export interface OwnerRefs {
+    apiVersion: string;
+    kind: string;
+    name: string;
+    uid: string;
 }
 
 export interface IDevWorkspaceDevfile {

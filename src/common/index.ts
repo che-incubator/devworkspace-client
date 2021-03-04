@@ -11,7 +11,8 @@
  */
 
 export const devworkspaceVersion = 'v1alpha2';
-export const devworkspaceSubresource = 'devworkspaces';
+export const devworkspacePluralSubresource = 'devworkspaces';
+export const devworkspaceSingularSubresource = 'devworkspace';
 export const devworkspaceTemplateSubresource = 'devworkspacetemplates';
 export const projectsId = 'projects';
 export const projectRequestId = 'projectrequests';
