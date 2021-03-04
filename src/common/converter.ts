@@ -13,14 +13,14 @@
 import { IDevWorkspace, IDevWorkspaceDevfile } from '../types';
 import { devworkspaceVersion, devWorkspaceApiGroup } from '.';
 
-export function devfileToDevWorkspace(devfile: IDevWorkspaceDevfile): IDevWorkspace {
+export function devfileToDevWorkspace(devfile: IDevWorkspaceDevfile, started: boolean): IDevWorkspace {
     devfile.metadata.annotations = {};
     const template = {
         apiVersion: `${devWorkspaceApiGroup}/${devworkspaceVersion}`,
         kind: 'DevWorkspace',
         metadata: devfile.metadata,
         spec: {
-            started: true,
+            started,
             routingClass: 'che',
             template: {
                 components: []

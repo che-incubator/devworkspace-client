@@ -15,6 +15,7 @@ import { INodeConfig } from './types';
 import { RestApi } from './browser';
 
 export * from './common/converter';
+export * from './common/index';
 export * from './types';
 
 export class DevWorkspaceClient {

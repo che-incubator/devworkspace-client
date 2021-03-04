@@ -17,7 +17,7 @@ import {
 } from '../types';
 import { devfileToDevWorkspace, IDevWorkspaceApi } from '../index';
 import {
-  devworkspaceSubresource,
+  devworkspacePluralSubresource,
   devworkspaceVersion,
   devWorkspaceApiGroup,
   projectApiGroup,
@@ -43,7 +43,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
         devWorkspaceApiGroup,
         devworkspaceVersion,
         namespace,
-        devworkspaceSubresource
+        devworkspacePluralSubresource
       );
       return (resp.body as any).items as IDevWorkspace[];
     } catch (e) {
@@ -60,7 +60,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
         devWorkspaceApiGroup,
         devworkspaceVersion,
         namespace,
-        devworkspaceSubresource,
+        devworkspacePluralSubresource,
         workspaceName
       );
       return resp.body as IDevWorkspace;
@@ -71,21 +71,51 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
 
   async create(
     devfile: IDevWorkspaceDevfile,
-    defaultEditor?: string,
-    defaultPlugins?: string[]
+    started: boolean = true
   ): Promise<IDevWorkspace> {
     try {
-      const devworkspace = devfileToDevWorkspace(devfile);
+      const devworkspace = devfileToDevWorkspace(devfile, started);
       const namespace = devfile.metadata.namespace;
       const resp = await this.customObjectAPI.createNamespacedCustomObject(
         devWorkspaceApiGroup,
         devworkspaceVersion,
         namespace,
-        devworkspaceSubresource,
+        devworkspacePluralSubresource,
         devworkspace
       );
       return resp.body as IDevWorkspace;
     } catch (e) {
+      throw handleGenericError(e);
+    }
+  }
+
+  async update(devworkspace: IDevWorkspace): Promise<IDevWorkspace> {
+    try {
+      // You have to delete some elements from the devworkspace in order to update
+      if (devworkspace.metadata?.uid) {
+        devworkspace.metadata.uid = undefined;
+      }
+      if (devworkspace.metadata.creationTimestamp) {
+        delete devworkspace.metadata.creationTimestamp;
+      }
+      if (devworkspace.metadata.deletionTimestamp) {
+        delete devworkspace.metadata.deletionTimestamp;
+      }
+
+      const name = devworkspace.metadata.name;
+      const namespace = devworkspace.metadata.namespace;
+
+      const resp = await this.customObjectAPI.replaceNamespacedCustomObject(
+        devWorkspaceApiGroup,
+        devworkspaceVersion,
+        namespace,
+        devworkspacePluralSubresource,
+        name,
+        devworkspace
+      )
+      return resp.body as IDevWorkspace;
+    } catch (e) {
+      console.log(e);
       throw handleGenericError(e);
     }
   }
@@ -96,7 +126,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
         devWorkspaceApiGroup,
         devworkspaceVersion,
         namespace,
-        devworkspaceSubresource,
+        devworkspacePluralSubresource,
         name
       );
     } catch (e) {
@@ -126,7 +156,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
         devWorkspaceApiGroup,
         devworkspaceVersion,
         namespace,
-        devworkspaceSubresource,
+        devworkspacePluralSubresource,
         name,
         patch,
         undefined,

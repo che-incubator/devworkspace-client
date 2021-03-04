@@ -59,6 +59,14 @@ describe('DevWorkspace API integration testing against cluster', () => {
             const changedWorkspace = await nodeApi.workspaceApi.changeStatus(namespace, name, false);
             expect(changedWorkspace.spec.started).toBe(false);
 
+            await delay(2000);
+            const currentDevWorkspace = await nodeApi.workspaceApi.getByName(namespace, name);
+            const sampleRouting = 'sample';
+            currentDevWorkspace.spec.routingClass = sampleRouting;
+
+            const updatedWorkspace = await nodeApi.workspaceApi.update(currentDevWorkspace);
+            expect(updatedWorkspace.spec.routingClass).toBe(sampleRouting);
+
             // check that deletion works
             await nodeApi.workspaceApi.delete(namespace, name);
             await delay(5000);
