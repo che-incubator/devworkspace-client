@@ -15,14 +15,18 @@ import { IDevWorkspaceTemplate, IDevWorkspaceTemplateApi } from '../types';
 import { devworkspaceVersion, devWorkspaceApiGroup, devworkspaceTemplateSubresource } from '../common';
 
 export class RestDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
-  private axios: AxiosInstance;
+  private _axios: AxiosInstance;
 
   constructor(axios: AxiosInstance) {
-    this.axios = axios;
+    this._axios = axios;
   }
 
+  set config(axios: AxiosInstance) {
+    this._axios = axios;
+  };
+
   async listInNamespace(namespace: string): Promise<IDevWorkspaceTemplate[]> {
-    const resp = await this.axios.get(
+    const resp = await this._axios.get(
       `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspaceTemplateSubresource}`
     );
     return resp.data.items;
@@ -32,7 +36,7 @@ export class RestDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
     namespace: string,
     workspaceName: string
   ): Promise<IDevWorkspaceTemplate> {
-    const resp = await this.axios.get(
+    const resp = await this._axios.get(
       `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspaceTemplateSubresource}/${workspaceName}`
     );
     return resp.data;
@@ -41,7 +45,7 @@ export class RestDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
   async create(
     devworkspaceTemplate: IDevWorkspaceTemplate,
   ): Promise<IDevWorkspaceTemplate> {
-    const resp = await this.axios.post(
+    const resp = await this._axios.post(
       `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${devworkspaceTemplate.metadata.namespace}/${devworkspaceTemplateSubresource}`,
       devworkspaceTemplate,
       {
@@ -54,7 +58,7 @@ export class RestDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
   }
 
   async delete(namespace: string, name: string): Promise<void> {
-    this.axios.delete(
+    this._axios.delete(
       `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspaceTemplateSubresource}/${name}`
     );
   }

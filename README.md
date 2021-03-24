@@ -6,10 +6,10 @@ The DevWorkspace Client is a library for interacting with DevWorkspaces on your 
 
 Browser side using kubernetes Rest API:
 ```typescript
-import { DevWorkspaceClient } from '@eclipse-che/devworkspace-client';
+import { RestApi } from '@eclipse-che/devworkspace-client';
 import axios from 'axios';
 
-const restApiClient = DevWorkspaceClient.getRestApi();
+const restApiClient = new RestApi(this.axios)
 const workspaceApi = restApiClient.workspaceApi;
 const promise = workspaceApi.getAllWorkspaces('my_namespace');
 promise.then((workspaces) => {
@@ -19,11 +19,15 @@ promise.then((workspaces) => {
 
 Node side using @kubernetes/client-node:
 ```typescript
-import { DevWorkspaceClient } from '@eclipse-che/devworkspace-client';
+import 'reflect-metadata';
+import { container, INVERSIFY_TYPES } from '@eclipse-che/devworkspace-client';
 
-const restApiClient = DevWorkspaceClient.getNodeApi();
-const workspaceApi = restApiClient.workspaceApi;
-const promise = workspaceApi.getAllWorkspaces('my_namespace');
+const devWorkspaceClient = container.get(INVERSIFY_TYPES.IDevWorkspaceClient);
+const nodeApi = devWorkspaceClient.getNodeApi({
+    inCluster: false
+});
+const workspaceApi = nodeApi.workspaceApi;
+const promise = workspaceApi.listInNamespace('my_namespace');
 promise.then((workspaces) => {
     // process workspaces received from my_namespace
 });

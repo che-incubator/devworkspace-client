@@ -44,7 +44,7 @@ var client = {
                 exclude: /node_modules/
             },
             {
-                test: /node/,
+                test: [/node/, /\.\/node\/client/, /\.\/node\/inversify.config/],
                 loader: 'null-loader',
             },
         ]
@@ -56,6 +56,7 @@ var client = {
         filename: 'client.js',
         library: 'devworkspace-client',
         libraryTarget: 'umd',
+        globalObject: 'this',
         path: path.resolve(__dirname, 'dist')
     }
 };

@@ -1,14 +1,17 @@
 {
     "compilerOptions": {
         "strict": true,
-        "target": "es5",
+        "target": "es6",
         "lib": ["es6", "dom"],
         "module": "commonjs",
+        "types": ["reflect-metadata", "jest"],
         "declaration": true,
         "outDir": ".",
         "baseUrl": "src",
         "skipLibCheck": true,
-        "sourceMap": true
+        "sourceMap": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true
     },
     "exclude": [
         "node_modules",
