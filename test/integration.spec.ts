@@ -34,7 +34,7 @@ describe('DevWorkspace API integration testing against cluster', () => {
             expect(isApiEnabled).toBe(true);
 
             // check that the namespace is initialized
-            await nodeApi.workspaceApi.initializeNamespace(namespace);
+            await nodeApi.cheApi.initializeNamespace(namespace);
             await delay(5000);
             const projectExists = await (nodeApi.workspaceApi as any).doesProjectExist(namespace);
             expect(projectExists).toBe(true);
@@ -89,7 +89,7 @@ describe('DevWorkspace API integration testing against cluster', () => {
             expect(isApiEnabled).toBe(true);
 
             // initialize project if it doesn't exist
-            await nodeApi.workspaceApi.initializeNamespace(namespace);
+            await nodeApi.cheApi.initializeNamespace(namespace);
             await delay(5000);
             const projectExists = await (nodeApi.workspaceApi as any).doesProjectExist(namespace);
             expect(projectExists).toBe(true);
