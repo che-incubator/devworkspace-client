@@ -15,14 +15,11 @@ import { devfileToDevWorkspace } from '../common/converter';
 import { IDevWorkspace, IDevWorkspaceDevfile } from '../types';
 import { delay } from '../common/helper';
 import { IDevWorkspaceApi } from '../index';
-import { devworkspaceVersion, devWorkspaceApiGroup, projectApiGroup, devworkspacePluralSubresource, projectRequestId, projectsId } from '../common';
-import { deletePolicy, deletionOptions, projectRequestModel } from '../common/models';
-import { isOpenShiftCluster } from './helper';
+import { devworkspaceVersion, devWorkspaceApiGroup, devworkspacePluralSubresource } from '../common';
+import { deletePolicy, deletionOptions } from '../common/models';
 
 export class RestDevWorkspaceApi implements IDevWorkspaceApi {
   private axios: AxiosInstance;
-  private projectInitRequestTimeoutMs = 10000;
-  private projectRequestDelayMs = 100;
 
   constructor(axios: AxiosInstance) {
     this.axios = axios;
@@ -132,47 +129,4 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
     );
     return resp.data;
   }
-
-  async initializeNamespace(namespace: string): Promise<void> {
-    const isOpenShift = await isOpenShiftCluster(this.axios);
-    if (isOpenShift) {
-      const doesProjectAlreadyExist = await this.doesProjectExist(namespace);
-      if (!doesProjectAlreadyExist) {
-        this.createProject(namespace);
-        await this.waitForProjectToBeReady(namespace);
-      }
-    }
-  }
-
-  async doesProjectExist(projectName: string): Promise<boolean> {
-    try {
-      const projects = await this.axios.get(`/apis/${projectApiGroup}/v1/${projectsId}`);
-      for (const proj of projects.data.items) {
-        if (proj.metadata.name === projectName) {
-          return true;
-        }
-      }
-      return false;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  private createProject(namespace: string): void {
-    this.axios.post(`/apis/${projectApiGroup}/v1/${projectRequestId}`, projectRequestModel(namespace));
-  }
-
-  private async waitForProjectToBeReady(namespace: string): Promise<void> {
-    let millisecondsAttempted = 0;
-    let request = await this.doesProjectExist(namespace);
-    while (millisecondsAttempted < this.projectInitRequestTimeoutMs && !request) {
-      request = await this.doesProjectExist(namespace);
-      await delay(this.projectRequestDelayMs);
-      millisecondsAttempted += this.projectRequestDelayMs;
-    }
-    if (millisecondsAttempted >= this.projectInitRequestTimeoutMs) {
-      throw new Error(`Project ${namespace} could not be initialized in ${this.projectInitRequestTimeoutMs / 1000} seconds`);
-    }
-  }
-
 }

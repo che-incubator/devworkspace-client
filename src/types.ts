@@ -20,7 +20,6 @@ export interface IDevWorkspaceApi {
     update(devworkspace: IDevWorkspace): Promise<IDevWorkspace>;
     delete(namespace: string, name: string): Promise<void>;
     changeStatus(namespace: string, name: string, started: boolean): Promise<IDevWorkspace>;
-    initializeNamespace(namespace: string): Promise<void>;
 }
 
 export interface IDevWorkspaceTemplateApi {
@@ -34,6 +33,10 @@ export interface IDevWorkspaceClientApi {
     workspaceApi: IDevWorkspaceApi;
     templateApi: IDevWorkspaceTemplateApi;
     isDevWorkspaceApiEnabled(): Promise<boolean>;
+}
+
+export interface ICheApi {
+    initializeNamespace(namespace: string): Promise<void>;
 }
 
 export interface IDevWorkspace {
