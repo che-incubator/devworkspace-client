@@ -16,7 +16,7 @@ import { IDevWorkspace, IDevWorkspaceDevfile } from '../types';
 import { delay } from '../common/helper';
 import { IDevWorkspaceApi } from '../index';
 import { devworkspaceVersion, devWorkspaceApiGroup, projectApiGroup, devworkspacePluralSubresource, projectRequestId, projectsId } from '../common';
-import { projectRequestModel } from '../common/models';
+import { deletePolicy, deletionOptions, projectRequestModel } from '../common/models';
 import { isOpenShiftCluster } from './helper';
 
 export class RestDevWorkspaceApi implements IDevWorkspaceApi {
@@ -103,7 +103,12 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
 
   async delete(namespace: string, name: string): Promise<void> {
     await this.axios.delete(
-      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspacePluralSubresource}/${name}`
+      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspacePluralSubresource}/${name}`, {
+        headers: {
+          'content-type': 'application/json; charset=utf-8',
+        },
+        data: deletionOptions(deletePolicy.Background)
+      }
     );
   }
 
