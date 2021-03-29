@@ -13,6 +13,7 @@
 import { AxiosInstance } from 'axios';
 import { IDevWorkspaceTemplate, IDevWorkspaceTemplateApi } from '../types';
 import { devworkspaceVersion, devWorkspaceApiGroup, devworkspaceTemplateSubresource } from '../common';
+import { RequestError } from './helper';
 
 export class RestDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
   private _axios: AxiosInstance;
@@ -26,35 +27,47 @@ export class RestDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
   };
 
   async listInNamespace(namespace: string): Promise<IDevWorkspaceTemplate[]> {
-    const resp = await this._axios.get(
-      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspaceTemplateSubresource}`
-    );
-    return resp.data.items;
+    try {
+      const resp = await this._axios.get(
+        `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspaceTemplateSubresource}`
+      );
+      return resp.data.items;
+    } catch (e) {
+      return Promise.reject(new RequestError(e));
+    }
   }
 
   async getByName(
     namespace: string,
     workspaceName: string
   ): Promise<IDevWorkspaceTemplate> {
-    const resp = await this._axios.get(
-      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspaceTemplateSubresource}/${workspaceName}`
-    );
-    return resp.data;
+    try {
+      const resp = await this._axios.get(
+        `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspaceTemplateSubresource}/${workspaceName}`
+      );
+      return resp.data;
+    } catch (e) {
+      return Promise.reject(new RequestError(e));
+    }
   }
 
   async create(
     devworkspaceTemplate: IDevWorkspaceTemplate,
   ): Promise<IDevWorkspaceTemplate> {
-    const resp = await this._axios.post(
-      `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${devworkspaceTemplate.metadata.namespace}/${devworkspaceTemplateSubresource}`,
-      devworkspaceTemplate,
-      {
-        headers: {
-          'content-type': 'application/json; charset=utf-8',
-        },
-      }
-    );
-    return resp.data;
+    try {
+      const resp = await this._axios.post(
+        `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${devworkspaceTemplate.metadata.namespace}/${devworkspaceTemplateSubresource}`,
+        devworkspaceTemplate,
+        {
+          headers: {
+            'content-type': 'application/json; charset=utf-8',
+          },
+        }
+      );
+      return resp.data;
+    } catch (e) {
+      return Promise.reject(new RequestError(e));
+    }
   }
 
   async delete(namespace: string, name: string): Promise<void> {
