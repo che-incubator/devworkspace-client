@@ -21,9 +21,9 @@ import {
   devworkspaceVersion,
   devWorkspaceApiGroup,
 } from '../common';
-import { handleGenericError } from './errors';
 import { devfileToDevWorkspace } from '../common/converter';
 import { injectable } from 'inversify';
+import { NodeRequestError } from './errors';
 
 @injectable()
 export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
@@ -43,7 +43,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
       );
       return (resp.body as any).items as IDevWorkspace[];
     } catch (e) {
-      throw handleGenericError(e);
+      return Promise.reject(new NodeRequestError(e));
     }
   }
 
@@ -61,7 +61,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
       );
       return resp.body as IDevWorkspace;
     } catch (e) {
-      throw handleGenericError(e);
+      return Promise.reject(new NodeRequestError(e));
     }
   }
 
@@ -82,7 +82,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
       );
       return resp.body as IDevWorkspace;
     } catch (e) {
-      throw handleGenericError(e);
+      return Promise.reject(new NodeRequestError(e));
     }
   }
 
@@ -112,8 +112,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
       )
       return resp.body as IDevWorkspace;
     } catch (e) {
-      console.log(e);
-      throw handleGenericError(e);
+      return Promise.reject(new NodeRequestError(e));
     }
   }
 
@@ -127,7 +126,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
         name
       );
     } catch (e) {
-      throw handleGenericError(e);
+      return Promise.reject(new NodeRequestError(e));
     }
   }
 
@@ -163,7 +162,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
       );
       return resp.body as IDevWorkspace;
     } catch (e) {
-      throw handleGenericError(e);
+      return Promise.reject(new NodeRequestError(e));
     }
   }
 }

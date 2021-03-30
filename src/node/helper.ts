@@ -11,7 +11,6 @@
  */
 
 import * as k8s from '@kubernetes/client-node';
-import { handleGenericError } from './errors';
 
 export function isInCluster() {
     return 'KUBERNETES_SERVICE_HOST' in process.env && 'KUBERNETES_SERVICE_PORT' in process.env;
@@ -31,6 +30,6 @@ export async function findApi(apisApi: k8s.ApisApi, apiName: string, version?: s
           .length > 0;
       return Promise.resolve(filtered);
     } catch (e) {
-      throw handleGenericError(e);
+      return false;
     }
 }

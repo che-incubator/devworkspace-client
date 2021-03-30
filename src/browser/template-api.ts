@@ -13,7 +13,7 @@
 import { AxiosInstance } from 'axios';
 import { IDevWorkspaceTemplate, IDevWorkspaceTemplateApi } from '../types';
 import { devworkspaceVersion, devWorkspaceApiGroup, devworkspaceTemplateSubresource } from '../common';
-import { RequestError } from './helper';
+import { BrowserRequestError } from './helper';
 
 export class RestDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
   private _axios: AxiosInstance;
@@ -33,7 +33,7 @@ export class RestDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
       );
       return resp.data.items;
     } catch (e) {
-      return Promise.reject(new RequestError(e));
+      return Promise.reject(new BrowserRequestError(e));
     }
   }
 
@@ -47,7 +47,7 @@ export class RestDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
       );
       return resp.data;
     } catch (e) {
-      return Promise.reject(new RequestError(e));
+      return Promise.reject(new BrowserRequestError(e));
     }
   }
 
@@ -66,7 +66,7 @@ export class RestDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
       );
       return resp.data;
     } catch (e) {
-      return Promise.reject(new RequestError(e));
+      return Promise.reject(new BrowserRequestError(e));
     }
   }
 

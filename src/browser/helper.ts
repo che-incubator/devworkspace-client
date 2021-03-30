@@ -49,7 +49,7 @@ export interface IRequestError extends Error {
     response?: IResponse<any>;
 }
 
-export class RequestError implements IRequestError {
+export class BrowserRequestError implements IRequestError {
 
     status: number | undefined;
     name: string;

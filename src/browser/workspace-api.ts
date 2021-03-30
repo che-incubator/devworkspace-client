@@ -15,9 +15,9 @@ import { devfileToDevWorkspace } from '../common/converter';
 import { IDevWorkspace, IDevWorkspaceDevfile } from '../types';
 import { deletePolicy, deletionOptions } from '../common/models';
 import { IDevWorkspaceApi } from '../index';
-import { devworkspaceVersion, devWorkspaceApiGroup, devworkspacePluralSubresource } from '../common';
-import { RequestError } from './helper';
 import { delay } from '../common/helper';
+import { devworkspaceVersion, devWorkspaceApiGroup, devworkspacePluralSubresource } from '../common';
+import { BrowserRequestError } from './helper';
 
 export class RestDevWorkspaceApi implements IDevWorkspaceApi {
   private _axios: AxiosInstance;
@@ -37,7 +37,7 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
       );
       return resp.data.items;
     } catch (e) {
-      return Promise.reject(new RequestError(e));
+      return Promise.reject(new BrowserRequestError(e));
     }
   }
 
@@ -51,7 +51,7 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
       );
       return resp.data;
     } catch (e) {
-      return Promise.reject(new RequestError(e));
+      return Promise.reject(new BrowserRequestError(e));
     }
   }
 
@@ -97,7 +97,7 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
       }
       return found;
     } catch (e) {
-      return Promise.reject(new RequestError(e));
+      return Promise.reject(new BrowserRequestError(e));
     }
   }
 
@@ -116,7 +116,7 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
       );
       return resp.data;
     } catch (e) {
-      return Promise.reject(new RequestError(e));
+      return Promise.reject(new BrowserRequestError(e));
     }
   }
 
@@ -152,7 +152,7 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
       );
       return resp.data;
     } catch (e) {
-      return Promise.reject(new RequestError(e));
+      return Promise.reject(new BrowserRequestError(e));
     }
   }
 }

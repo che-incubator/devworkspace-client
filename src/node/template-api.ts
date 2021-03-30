@@ -12,12 +12,12 @@
 
 import * as k8s from '@kubernetes/client-node';
 import { injectable } from 'inversify';
+import { NodeRequestError } from './errors';
 import { devWorkspaceApiGroup, devworkspaceTemplateSubresource, devworkspaceVersion } from '../common';
 import {
     IDevWorkspaceTemplate,
     IDevWorkspaceTemplateApi,
 } from '../types';
-import { handleGenericError } from './errors';
 
 @injectable()
 export class NodeDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
@@ -37,7 +37,7 @@ export class NodeDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
             );
             return (resp.body as any).items as IDevWorkspaceTemplate[];
         } catch (e) {
-            throw handleGenericError(e);
+            return Promise.reject(new NodeRequestError(e));
         }
     }
 
@@ -52,7 +52,7 @@ export class NodeDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
             );
             return resp.body as IDevWorkspaceTemplate;
         } catch (e) {
-            throw handleGenericError(e);
+            return Promise.reject(new NodeRequestError(e));
         }
     }
 
@@ -70,7 +70,7 @@ export class NodeDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
             );
             return resp.body as IDevWorkspaceTemplate;
         } catch (e) {
-            throw handleGenericError(e);
+            return Promise.reject(new NodeRequestError(e));
         }
     }
 
@@ -84,7 +84,7 @@ export class NodeDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
                 name
             );
         } catch (e) {
-            throw handleGenericError(e);
+            return Promise.reject(new NodeRequestError(e));
         }
     }
 }
