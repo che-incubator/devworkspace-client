@@ -43,10 +43,12 @@ export interface IDevWorkspaceClientApi {
     config: k8s.KubeConfig | AxiosInstance;
     workspaceApi: IDevWorkspaceApi;
     templateApi: IDevWorkspaceTemplateApi;
+    cheApi: ICheApi;
     isDevWorkspaceApiEnabled(): Promise<boolean>;
 }
 
 export interface ICheApi {
+    config: k8s.KubeConfig | AxiosInstance;
     initializeNamespace(namespace: string): Promise<void>;
 }
 

@@ -13,18 +13,20 @@
 import 'reflect-metadata';
 import { Container, interfaces } from 'inversify';
 import { NodeDevWorkspaceTemplateApi } from './template-api';
-import { IDevWorkspaceApi, IDevWorkspaceClientApi, IDevWorkspaceTemplateApi, INodeConfig, INVERSIFY_TYPES } from '../types';
+import { ICheApi, IDevWorkspaceApi, IDevWorkspaceClientApi, IDevWorkspaceTemplateApi, INodeConfig, INVERSIFY_TYPES } from '../types';
 import { NodeDevWorkspaceApi } from './workspace-api';
 import { NodeApi } from './index';
 import * as k8s from '@kubernetes/client-node';
 import { isInCluster } from './helper';
 import { DevWorkspaceClient } from './client';
+import { NodeCheApi } from './che-api';
 
 const container = new Container();
 container.bind(INVERSIFY_TYPES.IDevWorkspaceClient).to(DevWorkspaceClient).inSingletonScope();
 container.bind(INVERSIFY_TYPES.IDevWorkspaceNodeClientApi).to(NodeApi).inSingletonScope();
 container.bind(INVERSIFY_TYPES.IDevWorkspaceNodeApi).to(NodeDevWorkspaceApi).inSingletonScope();
 container.bind(INVERSIFY_TYPES.IDevWorkspaceNodeTemplateApi).to(NodeDevWorkspaceTemplateApi).inSingletonScope();
+container.bind(INVERSIFY_TYPES.IDevWorkspaceNodeCheApi).to(NodeCheApi).inSingletonScope();
 
 container.bind<interfaces.Factory<IDevWorkspaceClientApi>>(INVERSIFY_TYPES.INodeApiFactory).toFactory<IDevWorkspaceClientApi>((context: interfaces.Context) => {
     return (nodeConfig: INodeConfig) => {
@@ -48,6 +50,9 @@ container.bind<interfaces.Factory<IDevWorkspaceClientApi>>(INVERSIFY_TYPES.INode
 
         const devWorkspaceTemplate = context.container.get<IDevWorkspaceTemplateApi>(INVERSIFY_TYPES.IDevWorkspaceNodeTemplateApi);
         devWorkspaceTemplate.config = kc;
+
+        const cheApi = context.container.get<ICheApi>(INVERSIFY_TYPES.IDevWorkspaceNodeCheApi);
+        cheApi.config = kc;
 
         return devworkspaceClientAPI;
     };

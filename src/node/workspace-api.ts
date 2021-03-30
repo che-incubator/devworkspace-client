@@ -28,11 +28,9 @@ import { injectable } from 'inversify';
 @injectable()
 export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
   private customObjectAPI!: k8s.CustomObjectsApi;
-  private apisApi!: k8s.ApisApi;
 
   set config(kc: k8s.KubeConfig) {
     this.customObjectAPI = kc.makeApiClient(k8s.CustomObjectsApi);
-    this.apisApi = kc.makeApiClient(k8s.ApisApi);
   }
 
   async listInNamespace(namespace: string): Promise<IDevWorkspace[]> {
