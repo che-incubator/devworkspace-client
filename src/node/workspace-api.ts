@@ -66,10 +66,11 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
 
   async create(
     devfile: IDevWorkspaceDevfile,
+    routingClass: string,
     started: boolean = true
   ): Promise<IDevWorkspace> {
     try {
-      const devworkspace = devfileToDevWorkspace(devfile, started);
+      const devworkspace = devfileToDevWorkspace(devfile, routingClass, started);
       const namespace = devfile.metadata.namespace;
       const resp = await this.customObjectAPI.createNamespacedCustomObject(
         devWorkspaceApiGroup,

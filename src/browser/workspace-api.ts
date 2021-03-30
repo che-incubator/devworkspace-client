@@ -44,9 +44,10 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
 
   async create(
     devfile: IDevWorkspaceDevfile,
+    routingClass: string,
     started = true
   ): Promise<IDevWorkspace> {
-    const devworkspace = devfileToDevWorkspace(devfile, started);
+    const devworkspace = devfileToDevWorkspace(devfile, routingClass, started);
     const stringifiedDevWorkspace = JSON.stringify(devworkspace);
 
     const resp = await this.axios.post(

@@ -15,7 +15,8 @@ export interface IDevWorkspaceApi {
     getByName(namespace: string, workspaceName: string): Promise<IDevWorkspace>;
     create(
         devfile: IDevWorkspaceDevfile,
-        started?: boolean
+        routingClass: string,
+        started?: boolean,
     ): Promise<IDevWorkspace>;
     update(devworkspace: IDevWorkspace): Promise<IDevWorkspace>;
     delete(namespace: string, name: string): Promise<void>;
