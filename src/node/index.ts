@@ -13,11 +13,13 @@
 import * as k8s from '@kubernetes/client-node';
 import { devWorkspaceApiGroup, devworkspaceVersion } from '../common';
 import {
+  ICheApi,
   IDevWorkspaceApi,
   IDevWorkspaceClientApi,
   IDevWorkspaceTemplateApi,
   INodeConfig,
 } from '../types';
+import { NodeCheApi } from './che-api';
 import { findApi, isInCluster } from './helper';
 import { NodeDevWorkspaceTemplateApi } from './template-api';
 import { NodeDevWorkspaceApi } from './workspace-api';
@@ -25,6 +27,7 @@ import { NodeDevWorkspaceApi } from './workspace-api';
 export class NodeApi implements IDevWorkspaceClientApi {
   private _workspaceApi: IDevWorkspaceApi;
   private _templateApi: IDevWorkspaceTemplateApi;
+  private _cheApi: ICheApi;
   private apisApi: k8s.ApisApi;
   private apiEnabled: boolean | undefined;
 
@@ -42,6 +45,7 @@ export class NodeApi implements IDevWorkspaceClientApi {
     }
     this._workspaceApi = new NodeDevWorkspaceApi(kc);
     this._templateApi = new NodeDevWorkspaceTemplateApi(kc);
+    this._cheApi = new NodeCheApi(kc);
     this.apisApi = kc.makeApiClient(k8s.ApisApi);
   }
 
@@ -51,6 +55,10 @@ export class NodeApi implements IDevWorkspaceClientApi {
 
   get templateApi(): IDevWorkspaceTemplateApi {
     return this._templateApi;
+  }
+
+  get cheApi(): ICheApi {
+    return this._cheApi;
   }
 
   async isDevWorkspaceApiEnabled(): Promise<boolean> {

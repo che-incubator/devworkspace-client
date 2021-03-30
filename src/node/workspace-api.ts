@@ -20,13 +20,8 @@ import {
   devworkspacePluralSubresource,
   devworkspaceVersion,
   devWorkspaceApiGroup,
-  projectApiGroup,
-  projectRequestId,
-  projectsId,
 } from '../common';
-import { projectRequestModel } from '../common/models';
 import { handleGenericError } from './errors';
-import { findApi } from './helper';
 
 export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
   private customObjectAPI: k8s.CustomObjectsApi;
@@ -71,10 +66,11 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
 
   async create(
     devfile: IDevWorkspaceDevfile,
+    routingClass: string,
     started: boolean = true
   ): Promise<IDevWorkspace> {
     try {
-      const devworkspace = devfileToDevWorkspace(devfile, started);
+      const devworkspace = devfileToDevWorkspace(devfile, routingClass, started);
       const namespace = devfile.metadata.namespace;
       const resp = await this.customObjectAPI.createNamespacedCustomObject(
         devWorkspaceApiGroup,
@@ -167,54 +163,6 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
       return resp.body as IDevWorkspace;
     } catch (e) {
       throw handleGenericError(e);
-    }
-  }
-
-  async initializeNamespace(namespace: string): Promise<void> {
-    try {
-      const isOpenShift = await this.isOpenShift();
-      if (isOpenShift) {
-        const doesProjectAlreadyExist = await this.doesProjectExist(namespace);
-        if (!doesProjectAlreadyExist) {
-          this.createProject(namespace);
-        }
-      }
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
-  async doesProjectExist(projectName: string): Promise<boolean> {
-    try {
-      const resp = await this.customObjectAPI.listClusterCustomObject(projectApiGroup, 'v1', projectsId);
-      const projectList = (resp.body as any).items;
-      return (
-        projectList.filter((x: any) => x.metadata.name === projectName)
-          .length > 0
-      );
-    } catch (e) {
-      return false;
-    }
-  }
-
-  private async createProject(namespace: string): Promise<void> {
-    try {
-      await this.customObjectAPI.createClusterCustomObject(
-        projectApiGroup,
-        'v1',
-        projectRequestId,
-        projectRequestModel(namespace)
-      );
-    } catch (e) {
-      throw handleGenericError(e);
-    }
-  }
-
-  private async isOpenShift(): Promise<boolean> {
-    try {
-      return findApi(this.apisApi, projectApiGroup);
-    } catch (e) {
-      return false;
     }
   }
 }

@@ -13,6 +13,7 @@
 import { AxiosInstance } from 'axios';
 import { devWorkspaceApiGroup, devworkspaceVersion } from '../common';
 import {
+  ICheApi,
   IDevWorkspaceApi,
   IDevWorkspaceClientApi,
   IDevWorkspaceTemplateApi,
@@ -20,17 +21,20 @@ import {
 import { findApi } from './helper';
 import { RestDevWorkspaceApi } from './workspace-api';
 import { RestDevWorkspaceTemplateApi } from './template-api';
+import { RestCheApi } from './che-api';
 
 export class RestApi implements IDevWorkspaceClientApi {
   private axios: AxiosInstance;
   private _workspaceApi: IDevWorkspaceApi;
   private _templateApi: IDevWorkspaceTemplateApi;
+  private _cheApi: ICheApi;
   private apiEnabled: boolean | undefined;
 
   constructor(axios: AxiosInstance) {
     this.axios = axios;
     this._workspaceApi = new RestDevWorkspaceApi(axios);
     this._templateApi = new RestDevWorkspaceTemplateApi(axios);
+    this._cheApi = new RestCheApi(axios);
   }
 
   get workspaceApi(): IDevWorkspaceApi {
@@ -39,6 +43,10 @@ export class RestApi implements IDevWorkspaceClientApi {
 
   get templateApi(): IDevWorkspaceTemplateApi {
     return this._templateApi;
+  }
+
+  get cheApi(): ICheApi {
+    return this._cheApi;
   }
 
   async isDevWorkspaceApiEnabled(): Promise<boolean> {
