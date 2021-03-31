@@ -11,6 +11,7 @@
  */
 
 import * as k8s from '@kubernetes/client-node';
+import { injectable } from 'inversify';
 import { devWorkspaceApiGroup, devworkspaceTemplateSubresource, devworkspaceVersion } from '../common';
 import {
     IDevWorkspaceTemplate,
@@ -18,10 +19,11 @@ import {
 } from '../types';
 import { handleGenericError } from './errors';
 
+@injectable()
 export class NodeDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
-    private customObjectAPI: k8s.CustomObjectsApi;
+    private customObjectAPI!: k8s.CustomObjectsApi;
 
-    constructor(kc: k8s.KubeConfig) {
+    set config(kc: k8s.KubeConfig) {
         this.customObjectAPI = kc.makeApiClient(k8s.CustomObjectsApi);
     }
 

@@ -10,33 +10,15 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { AxiosInstance } from 'axios';
-import { INodeConfig } from './types';
-import { RestApi } from './browser';
-
 export * from './common/converter';
 export * from './common/index';
 export * from './types';
+export * from './browser/index';
 
-export class DevWorkspaceClient {
-
-    public static getRestApi(axios: AxiosInstance) {
-        return new RestApi(axios);
-    }
-
-    public static getNodeApi(config: INodeConfig = {
-        inCluster: true
-    }) {
-        if (!DevWorkspaceClient.isItNode()) {
-            throw new Error('getNodeApi is only available when running in nodejs');
-        } else {
-            const nodeApi = require('./node').NodeApi;
-            return new nodeApi(config);
-        }
-    }
-
-    private static isItNode() {
-        return (typeof process !== 'undefined') && (typeof process.versions.node !== 'undefined');
-    }
-
+// We have to load these with require so that in the browser side module nothing fails when they aren't included in the webpack bundle
+const client = require('./node/client').DevWorkspaceClient;
+const container = require('./node/inversify.config').container;
+export {
+    client as DevWorkspaceClient,
+    container
 }

@@ -10,7 +10,15 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
+import * as k8s from '@kubernetes/client-node';
+import { AxiosInstance } from 'axios';
+
+export interface IDevWorkspaceClient {
+    getNodeApi(config: INodeConfig): IDevWorkspaceClientApi;
+}
+
 export interface IDevWorkspaceApi {
+    config: k8s.KubeConfig | AxiosInstance;
     listInNamespace(namespace: string): Promise<IDevWorkspace[]>;
     getByName(namespace: string, workspaceName: string): Promise<IDevWorkspace>;
     create(
@@ -24,6 +32,7 @@ export interface IDevWorkspaceApi {
 }
 
 export interface IDevWorkspaceTemplateApi {
+    config: k8s.KubeConfig | AxiosInstance;
     listInNamespace(namespace: string): Promise<IDevWorkspaceTemplate[]>;
     getByName(namespace: string, workspaceName: string): Promise<IDevWorkspaceTemplate>;
     delete(namespace: string, name: string): Promise<void>;
@@ -31,12 +40,15 @@ export interface IDevWorkspaceTemplateApi {
 }
 
 export interface IDevWorkspaceClientApi {
+    config: k8s.KubeConfig | AxiosInstance;
     workspaceApi: IDevWorkspaceApi;
     templateApi: IDevWorkspaceTemplateApi;
+    cheApi: ICheApi;
     isDevWorkspaceApiEnabled(): Promise<boolean>;
 }
 
 export interface ICheApi {
+    config: k8s.KubeConfig | AxiosInstance;
     initializeNamespace(namespace: string): Promise<void>;
 }
 
@@ -108,4 +120,13 @@ export interface IKubernetesGroupsModel {
     versions: {
         version: string;
     }[];
+}
+
+export const INVERSIFY_TYPES = {
+    IDevWorkspaceClient: Symbol('IDevWorkspaceClient'),
+    INodeApiFactory: Symbol('Factory<NodeApi>'),
+    IDevWorkspaceNodeClientApi: Symbol('IDevWorkspaceNodeClientApi'),
+    IDevWorkspaceNodeTemplateApi: Symbol('IDevWorkspaceNodeTemplateApi'),
+    IDevWorkspaceNodeApi: Symbol('IDevWorkspaceNodeApi'),
+    IDevWorkspaceNodeCheApi: Symbol('IDevWorkspaceNodeCheApi')
 }

@@ -26,6 +26,10 @@ export class RestCheApi implements ICheApi {
     this.axios = axios;
   }
 
+  set config(axios: AxiosInstance) {
+    this.axios = axios;
+  }
+
   async initializeNamespace(namespace: string): Promise<void> {
     const isOpenShift = await isOpenShiftCluster(this.axios);
     if (isOpenShift) {

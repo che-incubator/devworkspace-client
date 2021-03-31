@@ -22,12 +22,14 @@ import {
 import { projectRequestModel } from '../common/models';
 import { handleGenericError } from './errors';
 import { findApi } from './helper';
+import { injectable } from 'inversify';
 
+@injectable()
 export class NodeCheApi implements ICheApi {
-  private customObjectAPI: k8s.CustomObjectsApi;
-  private apisApi: k8s.ApisApi;
+  private customObjectAPI!: k8s.CustomObjectsApi;
+  private apisApi!: k8s.ApisApi;
 
-  constructor(kc: k8s.KubeConfig) {
+  set config(kc: k8s.KubeConfig) {
     this.customObjectAPI = kc.makeApiClient(k8s.CustomObjectsApi);
     this.apisApi = kc.makeApiClient(k8s.ApisApi);
   }

@@ -11,50 +11,38 @@
  */
 
 import * as k8s from '@kubernetes/client-node';
+import { inject, injectable } from 'inversify';
 import { devWorkspaceApiGroup, devworkspaceVersion } from '../common';
 import {
   ICheApi,
   IDevWorkspaceApi,
   IDevWorkspaceClientApi,
   IDevWorkspaceTemplateApi,
-  INodeConfig,
+  INVERSIFY_TYPES,
 } from '../types';
-import { NodeCheApi } from './che-api';
-import { findApi, isInCluster } from './helper';
-import { NodeDevWorkspaceTemplateApi } from './template-api';
-import { NodeDevWorkspaceApi } from './workspace-api';
+import { findApi } from './helper';
 
+@injectable()
 export class NodeApi implements IDevWorkspaceClientApi {
-  private _workspaceApi: IDevWorkspaceApi;
-  private _templateApi: IDevWorkspaceTemplateApi;
-  private _cheApi: ICheApi;
-  private apisApi: k8s.ApisApi;
+  private apisApi!: k8s.ApisApi;
   private apiEnabled: boolean | undefined;
 
-  constructor(config: INodeConfig) {
-    const kc = new k8s.KubeConfig();
-    if (config.inCluster) {
-      if (!isInCluster()) {
-        throw new Error(
-          'Recieved error message when attempting to load authentication from cluster. Most likely you are not running inside of a container.'
-        );
-      }
-      kc.loadFromCluster();
-    } else {
-      kc.loadFromDefault();
-    }
-    this._workspaceApi = new NodeDevWorkspaceApi(kc);
-    this._templateApi = new NodeDevWorkspaceTemplateApi(kc);
-    this._cheApi = new NodeCheApi(kc);
-    this.apisApi = kc.makeApiClient(k8s.ApisApi);
-  }
+  constructor(
+    @inject(INVERSIFY_TYPES.IDevWorkspaceNodeTemplateApi) private _templateApi: IDevWorkspaceTemplateApi,
+    @inject(INVERSIFY_TYPES.IDevWorkspaceNodeApi) private _workspaceApi: IDevWorkspaceApi,
+    @inject(INVERSIFY_TYPES.IDevWorkspaceNodeCheApi) private _cheApi: ICheApi
+  ) {}
 
-  get workspaceApi(): IDevWorkspaceApi {
-    return this._workspaceApi;
+  set config(kc: k8s.KubeConfig) {
+    this.apisApi = kc.makeApiClient(k8s.ApisApi);
   }
 
   get templateApi(): IDevWorkspaceTemplateApi {
     return this._templateApi;
+  }
+
+  get workspaceApi(): IDevWorkspaceApi {
+    return this._workspaceApi;
   }
 
   get cheApi(): ICheApi {
@@ -65,7 +53,7 @@ export class NodeApi implements IDevWorkspaceClientApi {
     if (this.apiEnabled !== undefined) {
       return Promise.resolve(this.apiEnabled);
     }
-    this.apiEnabled = await findApi(this.apisApi, devWorkspaceApiGroup, devworkspaceVersion);
+    this.apiEnabled = await findApi(this.apisApi!, devWorkspaceApiGroup, devworkspaceVersion);
     return this.apiEnabled;
   }
 }

@@ -10,19 +10,29 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { NodeApi } from '../src/node';
 import { isInCluster } from '../src/node/helper';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
-import { IDevWorkspaceDevfile, IDevWorkspaceTemplate } from '../src';
+import { IDevWorkspaceDevfile, IDevWorkspaceTemplate, INVERSIFY_TYPES } from '../src';
 import { delay } from '../src/common/helper';
 import { conditionalTest, isIntegrationTestEnabled } from './utils/suite';
+import { container } from '../src/node/inversify.config';
+import { DevWorkspaceClient } from '../src/node/client';
 
 describe('DevWorkspace API integration testing against cluster', () => {
 
+    beforeEach(() => {
+        container.snapshot();
+    });
+
+    afterEach(() => {
+        container.restore();
+    });
+
     describe('Test Node DevWorkspace Api against local cluster', () => {
         conditionalTest('Test run the creation, retrieval, update and deletion of a devworkspace', isIntegrationTestEnabled, async (done: any) => {
-            const nodeApi = new NodeApi({
+            const devWorkspaceClient = container.get<DevWorkspaceClient>(INVERSIFY_TYPES.IDevWorkspaceClient);
+            const nodeApi = devWorkspaceClient.getNodeApi({
                 inCluster: isInCluster()
             });
             const devfile = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-devfile.yaml', 'utf-8')) as IDevWorkspaceDevfile;
@@ -77,7 +87,8 @@ describe('DevWorkspace API integration testing against cluster', () => {
         }, 60000);
 
         conditionalTest('Test run the creation, retrieval and deletion of a devworkspace template', isIntegrationTestEnabled, async (done: any) => {
-            const nodeApi = new NodeApi({
+            const devWorkspaceClient = container.get<DevWorkspaceClient>(INVERSIFY_TYPES.IDevWorkspaceClient);
+            const nodeApi = devWorkspaceClient.getNodeApi({
                 inCluster: isInCluster()
             });
             const dwt = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-dwt.yaml', 'utf-8')) as IDevWorkspaceTemplate;
