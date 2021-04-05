@@ -32,7 +32,7 @@ export class NodeRequestError extends Error {
     this.response = (error as any).response;
     this.request = (error as any).request;
     if ((this.status === -1 || !this.status) && (!this.response  || (this.response && !this.response.status))) {
-      this.message = `network issues occured while requesting "${error.url}".`;
+      this.message = `network issues occurred while requesting "${error.url}".`;
     } else if (error.body) {
       this.message = error.body.message;
     } else {

@@ -29,7 +29,7 @@ export class NodeApi implements IDevWorkspaceClientApi {
 
   constructor(
     @inject(INVERSIFY_TYPES.IDevWorkspaceNodeTemplateApi) private _templateApi: IDevWorkspaceTemplateApi,
-    @inject(INVERSIFY_TYPES.IDevWorkspaceNodeApi) private _workspaceApi: IDevWorkspaceApi,
+    @inject(INVERSIFY_TYPES.IDevWorkspaceNodeApi) private _devworkspaceApi: IDevWorkspaceApi,
     @inject(INVERSIFY_TYPES.IDevWorkspaceNodeCheApi) private _cheApi: ICheApi
   ) {}
 
@@ -41,8 +41,8 @@ export class NodeApi implements IDevWorkspaceClientApi {
     return this._templateApi;
   }
 
-  get workspaceApi(): IDevWorkspaceApi {
-    return this._workspaceApi;
+  get devworkspaceApi(): IDevWorkspaceApi {
+    return this._devworkspaceApi;
   }
 
   get cheApi(): ICheApi {

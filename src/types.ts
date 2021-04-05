@@ -20,7 +20,7 @@ export interface IDevWorkspaceClient {
 export interface IDevWorkspaceApi {
     config: k8s.KubeConfig | AxiosInstance;
     listInNamespace(namespace: string): Promise<IDevWorkspace[]>;
-    getByName(namespace: string, workspaceName: string): Promise<IDevWorkspace>;
+    getByName(namespace: string, name: string): Promise<IDevWorkspace>;
     create(
         devfile: IDevWorkspaceDevfile,
         routingClass: string,
@@ -34,14 +34,14 @@ export interface IDevWorkspaceApi {
 export interface IDevWorkspaceTemplateApi {
     config: k8s.KubeConfig | AxiosInstance;
     listInNamespace(namespace: string): Promise<IDevWorkspaceTemplate[]>;
-    getByName(namespace: string, workspaceName: string): Promise<IDevWorkspaceTemplate>;
+    getByName(namespace: string, name: string): Promise<IDevWorkspaceTemplate>;
     delete(namespace: string, name: string): Promise<void>;
     create(template: IDevWorkspaceTemplate): Promise<IDevWorkspaceTemplate>;
 }
 
 export interface IDevWorkspaceClientApi {
     config: k8s.KubeConfig | AxiosInstance;
-    workspaceApi: IDevWorkspaceApi;
+    devworkspaceApi: IDevWorkspaceApi;
     templateApi: IDevWorkspaceTemplateApi;
     cheApi: ICheApi;
     isDevWorkspaceApiEnabled(): Promise<boolean>;
@@ -75,7 +75,7 @@ export interface IDevWorkspace {
     status: {
         ideUrl: string;
         phase: string;
-        workspaceId: string;
+        devworkspaceId: string;
         message?: string;
     };
 }

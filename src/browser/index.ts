@@ -25,14 +25,14 @@ import { RestDevWorkspaceApi } from './workspace-api';
 
 export class RestApi implements IDevWorkspaceClientApi {
   private _axios: AxiosInstance;
-  private _workspaceApi: IDevWorkspaceApi;
+  private _devworkspaceApi: IDevWorkspaceApi;
   private _templateApi: IDevWorkspaceTemplateApi;
   private _cheApi: ICheApi;
   private apiEnabled: boolean | undefined;
 
   constructor(axios: AxiosInstance) {
     this._axios = axios;
-    this._workspaceApi = new RestDevWorkspaceApi(axios);
+    this._devworkspaceApi = new RestDevWorkspaceApi(axios);
     this._templateApi = new RestDevWorkspaceTemplateApi(axios);
     this._cheApi = new RestCheApi(axios);
   }
@@ -41,8 +41,8 @@ export class RestApi implements IDevWorkspaceClientApi {
     this._axios = axios;
   }
 
-  get workspaceApi(): IDevWorkspaceApi {
-    return this._workspaceApi;
+  get devworkspaceApi(): IDevWorkspaceApi {
+    return this._devworkspaceApi;
   }
 
   get templateApi(): IDevWorkspaceTemplateApi {

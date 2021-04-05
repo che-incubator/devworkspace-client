@@ -5,38 +5,40 @@ The DevWorkspace Client is a library for interacting with DevWorkspaces on your 
 ## Examples
 
 Browser side using kubernetes Rest API:
+
 ```typescript
 import { RestApi } from '@eclipse-che/devworkspace-client';
 import axios from 'axios';
 
 const restApiClient = new RestApi(this.axios)
-const workspaceApi = restApiClient.workspaceApi;
-const promise = workspaceApi.getAllWorkspaces('my_namespace');
-promise.then((workspaces) => {
-    // process workspaces received from my_namespace
+const devworkspaceApi = restApiClient.devworkspaceApi;
+const promise = devworkspaceApi.getAllDevWorkspaces('my_namespace');
+promise.then((devworkspaces) => {
+    // process devworkspaces received from my_namespace
 });
 ```
 
 Node side using @kubernetes/client-node:
+
 ```typescript
 import 'reflect-metadata';
 import { container, INVERSIFY_TYPES } from '@eclipse-che/devworkspace-client';
 
-const devWorkspaceClient = container.get(INVERSIFY_TYPES.IDevWorkspaceClient);
-const nodeApi = devWorkspaceClient.getNodeApi({
+const devworkspaceClient = container.get(INVERSIFY_TYPES.IDevWorkspaceClient);
+const nodeApi = devworkspaceClient.getNodeApi({
     inCluster: false
 });
-const workspaceApi = nodeApi.workspaceApi;
-const promise = workspaceApi.listInNamespace('my_namespace');
-promise.then((workspaces) => {
-    // process workspaces received from my_namespace
+const devworkspaceApi = nodeApi.devworkspaceApi;
+const promise = devworkspaceApi.listInNamespace('my_namespace');
+promise.then((devworkspaces) => {
+    // process devworkspaces received from my_namespace
 });
 ```
-
 
 ## Developer support
 
 ### Getting Started
+
 1. Install prerequisite tooling:
     - yarn
     - node
@@ -48,13 +50,14 @@ promise.then((workspaces) => {
     - Run `yarn test`
 
 ### Integration tests
+
 Integration tests can be run locally by using `export INTEGRATION_TESTS=true`. Refer to the Environment variables section to learn more.
 
 **The devworkspace-controller must be on the cluster before running the integration tests.**
 
 ### Environment variables
-`INTEGRATION_TESTS`: When the INTEGRATION_TESTS environment variable is defined and it's value is true, the integration tests will run against your currently authenticated cluster.
 
+`INTEGRATION_TESTS`: When the INTEGRATION_TESTS environment variable is defined and it's value is true, the integration tests will run against your currently authenticated cluster.
 
 ## License
 

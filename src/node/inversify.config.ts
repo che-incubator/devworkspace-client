@@ -34,7 +34,7 @@ container.bind<interfaces.Factory<IDevWorkspaceClientApi>>(INVERSIFY_TYPES.INode
         if (nodeConfig.inCluster) {
             if (!isInCluster()) {
                 throw new Error(
-                    'Recieved error message when attempting to load authentication from cluster. Most likely you are not running inside of a container.'
+                    'Received error message when attempting to load authentication from cluster. Most likely you are not running inside of a container.'
                 );
             }
             kc.loadFromCluster();
