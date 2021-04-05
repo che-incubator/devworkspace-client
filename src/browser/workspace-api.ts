@@ -43,11 +43,11 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
 
   async getByName(
     namespace: string,
-    workspaceName: string
+    name: string
   ): Promise<IDevWorkspace> {
     try {
       const resp = await this._axios.get(
-        `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspacePluralSubresource}/${workspaceName}`
+        `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspacePluralSubresource}/${name}`
       );
       return resp.data;
     } catch (e) {
@@ -92,7 +92,7 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
       }
       if (!found) {
         throw new Error(
-          `Was not able to find a workspace with name ${name} in namespace ${namespace}`
+          `Was not able to find a devworkspace with name ${name} in namespace ${namespace}`
         );
       }
       return found;

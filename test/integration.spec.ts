@@ -50,37 +50,37 @@ describe('DevWorkspace API integration testing against cluster', () => {
             expect(projectExists).toBe(true);
 
             // check that creation works
-            const newDevWorkspace = await nodeApi.workspaceApi.create(devfile, 'che', true);
+            const newDevWorkspace = await nodeApi.devworkspaceApi.create(devfile, 'che', true);
             expect(newDevWorkspace.metadata.name).toBe(name);
             expect(newDevWorkspace.metadata.namespace).toBe(namespace);
 
             // check that retrieval works
-            const allWorkspaces = await nodeApi.workspaceApi.listInNamespace(namespace);
+            const allWorkspaces = await nodeApi.devworkspaceApi.listInNamespace(namespace);
             expect(allWorkspaces.length).toBe(1);
             const firstDevWorkspace = allWorkspaces[0];
             expect(firstDevWorkspace.metadata.name).toBe(name);
             expect(firstDevWorkspace.metadata.namespace).toBe(namespace);
 
-            const singleNamespace = await nodeApi.workspaceApi.getByName(namespace, name);
+            const singleNamespace = await nodeApi.devworkspaceApi.getByName(namespace, name);
             expect(singleNamespace.metadata.name).toBe(name);
             expect(singleNamespace.metadata.namespace).toBe(namespace);
 
             // check that updating works
-            const changedWorkspace = await nodeApi.workspaceApi.changeStatus(namespace, name, false);
+            const changedWorkspace = await nodeApi.devworkspaceApi.changeStatus(namespace, name, false);
             expect(changedWorkspace.spec.started).toBe(false);
 
             await delay(2000);
-            const currentDevWorkspace = await nodeApi.workspaceApi.getByName(namespace, name);
+            const currentDevWorkspace = await nodeApi.devworkspaceApi.getByName(namespace, name);
             const sampleRouting = 'sample';
             currentDevWorkspace.spec.routingClass = sampleRouting;
 
-            const updatedWorkspace = await nodeApi.workspaceApi.update(currentDevWorkspace);
+            const updatedWorkspace = await nodeApi.devworkspaceApi.update(currentDevWorkspace);
             expect(updatedWorkspace.spec.routingClass).toBe(sampleRouting);
 
             // check that deletion works
-            await nodeApi.workspaceApi.delete(namespace, name);
+            await nodeApi.devworkspaceApi.delete(namespace, name);
             await delay(5000);
-            const finalNamespaces = await nodeApi.workspaceApi.listInNamespace(namespace);
+            const finalNamespaces = await nodeApi.devworkspaceApi.listInNamespace(namespace);
             expect(finalNamespaces.length).toBe(0);
 
             done();

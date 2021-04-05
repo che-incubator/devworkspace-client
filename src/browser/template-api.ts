@@ -39,11 +39,11 @@ export class RestDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
 
   async getByName(
     namespace: string,
-    workspaceName: string
+    name: string
   ): Promise<IDevWorkspaceTemplate> {
     try {
       const resp = await this._axios.get(
-        `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspaceTemplateSubresource}/${workspaceName}`
+        `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspaceTemplateSubresource}/${name}`
       );
       return resp.data;
     } catch (e) {

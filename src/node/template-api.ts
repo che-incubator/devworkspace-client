@@ -41,14 +41,14 @@ export class NodeDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
         }
     }
 
-    async getByName(namespace: string, workspaceName: string): Promise<IDevWorkspaceTemplate> {
+    async getByName(namespace: string, name: string): Promise<IDevWorkspaceTemplate> {
         try {
             const resp = await this.customObjectAPI.getNamespacedCustomObject(
                 devWorkspaceApiGroup,
                 devworkspaceVersion,
                 namespace,
                 devworkspaceTemplateSubresource,
-                workspaceName
+                name
             );
             return resp.body as IDevWorkspaceTemplate;
         } catch (e) {

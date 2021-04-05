@@ -49,7 +49,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
 
   async getByName(
     namespace: string,
-    workspaceName: string
+    name: string
   ): Promise<IDevWorkspace> {
     try {
       const resp = await this.customObjectAPI.getNamespacedCustomObject(
@@ -57,7 +57,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
         devworkspaceVersion,
         namespace,
         devworkspacePluralSubresource,
-        workspaceName
+        name
       );
       return resp.body as IDevWorkspace;
     } catch (e) {
