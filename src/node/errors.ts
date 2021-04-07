@@ -19,18 +19,30 @@ export interface IKubernetesIncomingMessage extends IncomingMessage {
   };
 }
 
-// handle incoming creation errors
-export function handleCreationErrors(response: IKubernetesIncomingMessage, namespace: string): Error {
-  if (response.statusCode === 409) {
-    const errorMessage = `Workspace with name "${response.body.details.name}" in namespace "${namespace}" already exists`;
-    throw new Error(errorMessage);
-  }
-  return handleGenericError(response);
-}
+export class NodeRequestError extends Error {
 
-export function handleGenericError(response: IKubernetesIncomingMessage): Error {
-  if (response.body && response.body.message) {
-    throw new Error(response.body.message);
+  status: number | undefined;
+  response: any;
+  request: any;
+  message: string;
+
+  constructor(error: IKubernetesIncomingMessage) {
+    super();
+    this.status = error.statusCode;
+    this.response = (error as any).response;
+    this.request = (error as any).request;
+    if ((this.status === -1 || !this.status) && (!this.response  || (this.response && !this.response.status))) {
+      this.message = `network issues occured while requesting "${error.url}".`;
+    } else if (error.body) {
+      this.message = error.body.message;
+    } else {
+      let status = this.status;
+      if (!this.status && this.response && this.response.status) {
+          status = this.response.status;
+      } else if (!this.status && this.request && this.request.status) {
+          status = this.request.status;
+      }
+      this.message = `"${status}" returned by "${error.url}"."`;
+    }
   }
-  throw new Error(response.statusMessage);
 }

@@ -20,9 +20,9 @@ import {
   projectsId,
 } from '../common';
 import { projectRequestModel } from '../common/models';
-import { handleGenericError } from './errors';
 import { findApi } from './helper';
 import { injectable } from 'inversify';
+import { NodeRequestError } from './errors';
 
 @injectable()
 export class NodeCheApi implements ICheApi {
@@ -70,7 +70,7 @@ export class NodeCheApi implements ICheApi {
         projectRequestModel(namespace)
       );
     } catch (e) {
-      throw handleGenericError(e);
+      return Promise.reject(new NodeRequestError(e));
     }
   }
 
