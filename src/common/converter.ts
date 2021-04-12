@@ -54,7 +54,7 @@ export function devWorkspaceToDevfile(devworkspace: IDevWorkspace): IDevWorkspac
         template.projects = devworkspace.spec.template.projects;
     }
     if (devworkspace.spec.template.components) {
-        template.components = devworkspace.spec.template.components;
+        template.components = filterPluginComponents(devworkspace.spec.template.components);
     }
     if (devworkspace.spec.template.commands) {
         template.commands = devworkspace.spec.template.commands;
@@ -63,4 +63,9 @@ export function devWorkspaceToDevfile(devworkspace: IDevWorkspace): IDevWorkspac
         template.events = devworkspace.spec.template.events;
     }
     return template;
+}
+
+// Filter plugins from components
+function filterPluginComponents(components: any[]): any[] {
+    return components.filter(comp => !("plugin" in comp));
 }
