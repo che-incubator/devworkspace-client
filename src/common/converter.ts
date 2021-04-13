@@ -26,7 +26,7 @@ export function devfileToDevWorkspace(devfile: IDevWorkspaceDevfile, routingClas
                 components: []
             }
         }
-    } as IDevWorkspace;
+    } as unknown as IDevWorkspace;
     if (devfile.projects) {
         template.spec.template.projects = devfile.projects;
     }
