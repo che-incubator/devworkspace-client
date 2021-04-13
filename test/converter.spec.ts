@@ -17,8 +17,8 @@ import * as yaml from 'js-yaml';
 describe('testing sample conversions', () => {
 
     describe('devfile to devworkspace', () => {
-        test('the sample-devfile fixture should convert into sample-devworkspace fixture', () => {
-            const input: any = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-devfile.yaml', 'utf-8'));
+        test('the sample-devfile-plugins fixture should convert into sample-devworkspace fixture', () => {
+            const input: any = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-devfile-plugins.yaml', 'utf-8'));
             const output = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-devworkspace.yaml', 'utf-8'));
             expect(devfileToDevWorkspace(input, 'che', true)).toStrictEqual(output);
         });

@@ -67,7 +67,7 @@ export interface IDevWorkspace {
         routingClass: string;
         template: {
             projects?: any;
-            components?: any;
+            components?: any[];
             commands?: any;
             events?: any;
         }
