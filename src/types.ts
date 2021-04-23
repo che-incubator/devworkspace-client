@@ -28,6 +28,7 @@ export interface IDevWorkspaceApi {
     ): Promise<IDevWorkspace>;
     update(devworkspace: IDevWorkspace): Promise<IDevWorkspace>;
     delete(namespace: string, name: string): Promise<void>;
+    patch(namespace: string, name: string, patches: Patch[]): Promise<IDevWorkspace>;
     changeStatus(namespace: string, name: string, started: boolean): Promise<IDevWorkspace>;
 }
 
@@ -61,23 +62,26 @@ export interface IDevWorkspace {
         creationTimestamp?: string;
         deletionTimestamp?: string;
         uid?: string;
+        annotations?: any;
     };
-    spec: {
-        started: boolean;
-        routingClass: string;
-        template: {
-            projects?: any;
-            components?: any[];
-            commands?: any;
-            events?: any;
-        }
-    };
+    spec: IDevWorkspaceSpec,
     status: {
         ideUrl: string;
         phase: string;
         devworkspaceId: string;
         message?: string;
     };
+}
+
+export interface IDevWorkspaceSpec {
+    started: boolean;
+    routingClass: string;
+    template: {
+        projects?: any;
+        components?: any[];
+        commands?: any;
+        events?: any;
+    }
 }
 
 export interface IDevWorkspaceTemplate {
@@ -120,6 +124,12 @@ export interface IKubernetesGroupsModel {
     versions: {
         version: string;
     }[];
+}
+
+export interface Patch {
+    op: string;
+    path: string;
+    value?: any;
 }
 
 export const INVERSIFY_TYPES = {

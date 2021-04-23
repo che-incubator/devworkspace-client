@@ -15,6 +15,7 @@ import {
   IDevWorkspace,
   IDevWorkspaceApi,
   IDevWorkspaceDevfile,
+  Patch,
 } from '../types';
 import {
   devworkspacePluralSubresource,
@@ -130,19 +131,31 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
     }
   }
 
+  /**
+   * Patch a devworkspace
+   * @param devworkspace The devworkspace you want to patch
+   */
+  async patch(namespace: string, name: string, patches: Patch[]): Promise<IDevWorkspace> {
+    return this.createPatch(namespace, name, patches);
+  }
+
   async changeStatus(
     namespace: string,
     name: string,
     started: boolean
   ): Promise<IDevWorkspace> {
+    return this.createPatch(namespace, name, [{
+      op: 'replace',
+      path: '/spec/started',
+      value: started
+    }]);
+  }
+
+  private async createPatch(
+    namespace: string,
+    name: string,
+    patches: Patch[]) {
     try {
-      const patch = [
-        {
-          op: 'replace',
-          path: '/spec/started',
-          value: started,
-        },
-      ];
       const options = {
         headers: {
           'Content-type': k8s.PatchUtils.PATCH_FORMAT_JSON_PATCH,
@@ -154,7 +167,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
         namespace,
         devworkspacePluralSubresource,
         name,
-        patch,
+        patches,
         undefined,
         undefined,
         undefined,
