@@ -12,7 +12,7 @@
 
 import { AxiosInstance } from 'axios';
 import { devfileToDevWorkspace } from '../common/converter';
-import { IDevWorkspace, IDevWorkspaceDevfile } from '../types';
+import { IDevWorkspace, IDevWorkspaceDevfile, Patch } from '../types';
 import { deletePolicy, deletionOptions } from '../common/models';
 import { IDevWorkspaceApi } from '../index';
 import { delay } from '../common/helper';
@@ -119,7 +119,6 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
       return Promise.reject(new BrowserRequestError(e));
     }
   }
-
   async delete(namespace: string, name: string): Promise<void> {
     await this._axios.delete(
       `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspacePluralSubresource}/${name}`, {
@@ -131,28 +130,39 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
     );
   }
 
+  /**
+   * Patch a devworkspace
+   * @param devworkspace The devworkspace you want to patch
+   */
+  async patch(namespace: string, name: string, patches: Patch[]): Promise<IDevWorkspace> {
+    return this.createPatch(namespace, name, patches);
+  }
+
   async changeStatus(namespace: string, name: string, started: boolean): Promise<IDevWorkspace> {
-    try {
-      const patch = [
-        {
-          path: '/spec/started',
-          op: 'replace',
-          value: started,
-        },
-      ];
-  
-      const resp = await this._axios.patch(
-        `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspacePluralSubresource}/${name}`,
-        patch,
-        {
-          headers: {
-            'Content-type': 'application/json-patch+json',
-          },
-        }
-      );
-      return resp.data;
-    } catch (e) {
-      return Promise.reject(new BrowserRequestError(e));
-    }
+    return this.createPatch(namespace, name, [{
+      op: 'replace',
+      path: '/spec/started',
+      value: started
+    }]);
+  }
+
+  private async createPatch(
+    namespace: string,
+    name: string,
+    patches: Patch[]) {
+      try {    
+        const resp = await this._axios.patch(
+          `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspacePluralSubresource}/${name}`,
+          patches,
+          {
+            headers: {
+              'Content-type': 'application/json-patch+json',
+            },
+          }
+        );
+        return resp.data;
+      } catch (e) {
+        return Promise.reject(new BrowserRequestError(e));
+      }
   }
 }
