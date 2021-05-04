@@ -66,7 +66,7 @@ export interface IDevWorkspace {
     };
     spec: IDevWorkspaceSpec,
     status: {
-        ideUrl: string;
+        mainUrl: string;
         phase: string;
         devworkspaceId: string;
         message?: string;
