@@ -44,7 +44,7 @@ export function devfileToDevWorkspace(devfile: IDevWorkspaceDevfile, routingClas
 
 export function devWorkspaceToDevfile(devworkspace: IDevWorkspace): IDevWorkspaceDevfile {
     const template = {
-        schemaVersion: '2.0.0',
+        schemaVersion: '2.2.0',
         metadata: {
             name: devworkspace.metadata.name,
             namespace: devworkspace.metadata.namespace
