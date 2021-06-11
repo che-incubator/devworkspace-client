@@ -14,11 +14,16 @@ import { IDevWorkspace, IDevWorkspaceDevfile } from '../types';
 import { devworkspaceVersion, devWorkspaceApiGroup } from '.';
 
 export function devfileToDevWorkspace(devfile: IDevWorkspaceDevfile, routingClass: string, started: boolean): IDevWorkspace {
-    devfile.metadata.annotations = {};
+    const devfileAttributes = devfile.metadata.attributes || {};
+    const devWorkspaceAnnotations = devfileAttributes['dw.metadata.annotations'] || {}
     const template = {
         apiVersion: `${devWorkspaceApiGroup}/${devworkspaceVersion}`,
         kind: 'DevWorkspace',
-        metadata: devfile.metadata,
+        metadata: {
+            name: devfile.metadata.name,
+            namespace: devfile.metadata.namespace,
+            annotations: devWorkspaceAnnotations,
+        },
         spec: {
             started,
             routingClass,
@@ -47,7 +52,7 @@ export function devWorkspaceToDevfile(devworkspace: IDevWorkspace): IDevWorkspac
         schemaVersion: '2.1.0',
         metadata: {
             name: devworkspace.metadata.name,
-            namespace: devworkspace.metadata.namespace
+            namespace: devworkspace.metadata.namespace,
         },
     } as IDevWorkspaceDevfile;
     if (devworkspace.spec.template.projects) {
