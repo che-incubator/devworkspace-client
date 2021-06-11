@@ -10,15 +10,30 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { IDevWorkspace, IDevWorkspaceDevfile } from '../types';
-import { devworkspaceVersion, devWorkspaceApiGroup } from '.';
+import { IDevfile } from '../types';
+import { V1alpha2DevWorkspace, V1alpha2DevWorkspaceSpecTemplate } from '@devfile/api';
+import { devworkspaceKind, devworkspaceVersion, devWorkspaceApiGroup } from '.';
 
-export function devfileToDevWorkspace(devfile: IDevWorkspaceDevfile, routingClass: string, started: boolean): IDevWorkspace {
-    const devfileAttributes = devfile.metadata.attributes || {};
+export function devfileToDevWorkspace(devfile: IDevfile, routingClass: string, started: boolean): V1alpha2DevWorkspace {
+    const template: V1alpha2DevWorkspaceSpecTemplate = {}
+    if (devfile.projects) {
+        template.projects = devfile.projects;
+    }
+    if (devfile.components) {
+        template.components = devfile.components;
+    }
+    if (devfile.commands) {
+        template.commands = devfile.commands;
+    }
+    if (devfile.events) {
+        template.events = devfile.events;
+    }
+
+    const devfileAttributes = devfile.metadata.attributes || {} as any;
     const devWorkspaceAnnotations = devfileAttributes['dw.metadata.annotations'] || {}
-    const template = {
+    return {
         apiVersion: `${devWorkspaceApiGroup}/${devworkspaceVersion}`,
-        kind: 'DevWorkspace',
+        kind: devworkspaceKind,
         metadata: {
             name: devfile.metadata.name,
             namespace: devfile.metadata.namespace,
@@ -27,44 +42,30 @@ export function devfileToDevWorkspace(devfile: IDevWorkspaceDevfile, routingClas
         spec: {
             started,
             routingClass,
-            template: {
-                components: []
-            }
+            template: template,
         }
-    } as unknown as IDevWorkspace;
-    if (devfile.projects) {
-        template.spec.template.projects = devfile.projects;
     }
-    if (devfile.components) {
-        template.spec.template.components = devfile.components;
-    }
-    if (devfile.commands) {
-        template.spec.template.commands = devfile.commands;
-    }
-    if (devfile.events) {
-        template.spec.template.events = devfile.events;
-    }
-    return template;
-}
+  }
 
-export function devWorkspaceToDevfile(devworkspace: IDevWorkspace): IDevWorkspaceDevfile {
-    const template = {
+export function devWorkspaceToDevfile(devworkspace: V1alpha2DevWorkspace): IDevfile {
+    const dwMeta = devworkspace?.metadata as any;
+    const template: IDevfile = {
         schemaVersion: '2.1.0',
         metadata: {
-            name: devworkspace.metadata.name,
-            namespace: devworkspace.metadata.namespace,
+            name: dwMeta.name,
+            namespace: dwMeta.namespace
         },
-    } as IDevWorkspaceDevfile;
-    if (devworkspace.spec.template.projects) {
+    };
+    if (devworkspace.spec?.template?.projects) {
         template.projects = devworkspace.spec.template.projects;
     }
-    if (devworkspace.spec.template.components) {
+    if (devworkspace.spec?.template?.components) {
         template.components = filterPluginComponents(devworkspace.spec.template.components);
     }
-    if (devworkspace.spec.template.commands) {
+    if (devworkspace.spec?.template?.commands) {
         template.commands = devworkspace.spec.template.commands;
     }
-    if (devworkspace.spec.template.events) {
+    if (devworkspace.spec?.template?.events) {
         template.events = devworkspace.spec.template.events;
     }
     return template;

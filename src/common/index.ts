@@ -10,12 +10,16 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
+export const projectsId = 'projects';
+export const projectRequestId = 'projectrequests';
+export const projectApiGroup = 'project.openshift.io';
+
+export const devWorkspaceApiGroup = 'workspace.devfile.io';
+
 export const devworkspaceVersion = 'v1alpha2';
+export const devworkspaceKind = 'DevWorkspace';
 export const devworkspacePluralSubresource = 'devworkspaces';
 export const devworkspaceSingularSubresource = 'devworkspace';
 export const devworkspaceTemplateSubresource = 'devworkspacetemplates';
-export const projectsId = 'projects';
-export const projectRequestId = 'projectrequests';
 
-export const projectApiGroup = 'project.openshift.io';
-export const devWorkspaceApiGroup = 'workspace.devfile.io';
+export const devworkspaceGroupVersion = `${devWorkspaceApiGroup}/${devworkspaceVersion}`

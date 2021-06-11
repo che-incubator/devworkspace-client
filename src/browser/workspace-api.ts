@@ -12,12 +12,13 @@
 
 import { AxiosInstance } from 'axios';
 import { devfileToDevWorkspace } from '../common/converter';
-import { IDevWorkspace, IDevWorkspaceDevfile, Patch } from '../types';
+import { IDevfile, Patch } from '../types';
 import { deletePolicy, deletionOptions } from '../common/models';
 import { IDevWorkspaceApi } from '../index';
 import { delay } from '../common/helper';
 import { devworkspaceVersion, devWorkspaceApiGroup, devworkspacePluralSubresource } from '../common';
 import { BrowserRequestError } from './helper';
+import { V1alpha2DevWorkspace } from '@devfile/api';
 
 export class RestDevWorkspaceApi implements IDevWorkspaceApi {
   private _axios: AxiosInstance;
@@ -30,7 +31,7 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
     this._axios = axios;
   };
 
-  async listInNamespace(namespace: string): Promise<IDevWorkspace[]> {
+  async listInNamespace(namespace: string): Promise<V1alpha2DevWorkspace[]> {
     try {
       const resp = await this._axios.get(
         `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspacePluralSubresource}`
@@ -44,7 +45,7 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
   async getByName(
     namespace: string,
     name: string
-  ): Promise<IDevWorkspace> {
+  ): Promise<V1alpha2DevWorkspace> {
     try {
       const resp = await this._axios.get(
         `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspacePluralSubresource}/${name}`
@@ -56,10 +57,10 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
   }
 
   async create(
-    devfile: IDevWorkspaceDevfile,
+    devfile: IDevfile,
     routingClass: string,
     started = true
-  ): Promise<IDevWorkspace> {
+  ): Promise<V1alpha2DevWorkspace> {
     try {
       const devworkspace = devfileToDevWorkspace(devfile, routingClass, started);
       const stringifiedDevWorkspace = JSON.stringify(devworkspace);
@@ -101,10 +102,11 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
     }
   }
 
-  async update(devworkspace: IDevWorkspace): Promise<IDevWorkspace> {
+  async update(devworkspace: V1alpha2DevWorkspace): Promise<V1alpha2DevWorkspace> {
     try {
-      const name = devworkspace.metadata.name;
-      const namespace = devworkspace.metadata.namespace;
+      const metadata = devworkspace.metadata as any;
+      const name = metadata.name;
+      const namespace = metadata.namespace;
       const resp = await this._axios.put(
         `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspacePluralSubresource}/${name}`,
         devworkspace,
@@ -134,11 +136,11 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
    * Patch a devworkspace
    * @param devworkspace The devworkspace you want to patch
    */
-  async patch(namespace: string, name: string, patches: Patch[]): Promise<IDevWorkspace> {
+  async patch(namespace: string, name: string, patches: Patch[]): Promise<V1alpha2DevWorkspace> {
     return this.createPatch(namespace, name, patches);
   }
 
-  async changeStatus(namespace: string, name: string, started: boolean): Promise<IDevWorkspace> {
+  async changeStatus(namespace: string, name: string, started: boolean): Promise<V1alpha2DevWorkspace> {
     return this.createPatch(namespace, name, [{
       op: 'replace',
       path: '/spec/started',
