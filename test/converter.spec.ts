@@ -28,6 +28,7 @@ describe('testing sample conversions', () => {
         test('the sample-devworkspace fixture should convert into sample-devfile fixture', () => {
             const input: any = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-devworkspace.yaml', 'utf-8'));
             const output = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-devfile.yaml', 'utf-8'));
+            delete (output as any).metadata.attributes;
             expect(devWorkspaceToDevfile(input)).toStrictEqual(output);
         });
     });

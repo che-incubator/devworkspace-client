@@ -107,7 +107,7 @@ export interface IDevWorkspaceDevfile {
     metadata: {
         name: string;
         namespace: string;
-        annotations?: {};
+        attributes?: {[key: string]:any};
     };
     projects?: any;
     components?: any;

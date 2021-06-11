@@ -3,7 +3,8 @@ kind: DevWorkspace
 metadata:
   name: nodejs-stack
   namespace: sample
-  annotations: {}
+  annotations:
+    any.custom.settings: "true"
 spec:
   routingClass: che
   started: true
