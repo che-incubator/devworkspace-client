@@ -14,10 +14,8 @@ import * as k8s from '@kubernetes/client-node';
 import { injectable } from 'inversify';
 import { NodeRequestError } from './errors';
 import { devWorkspaceApiGroup, devworkspaceTemplateSubresource, devworkspaceVersion } from '../common';
-import {
-    IDevWorkspaceTemplate,
-    IDevWorkspaceTemplateApi,
-} from '../types';
+import { V1alpha2DevWorkspaceTemplate } from '@devfile/api';
+import { IDevWorkspaceTemplateApi } from '../types';
 
 @injectable()
 export class NodeDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
@@ -27,7 +25,7 @@ export class NodeDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
         this.customObjectAPI = kc.makeApiClient(k8s.CustomObjectsApi);
     }
 
-    async listInNamespace(namespace: string): Promise<IDevWorkspaceTemplate[]> {
+    async listInNamespace(namespace: string): Promise<V1alpha2DevWorkspaceTemplate[]> {
         try {
             const resp = await this.customObjectAPI.listNamespacedCustomObject(
                 devWorkspaceApiGroup,
@@ -35,13 +33,13 @@ export class NodeDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
                 namespace,
                 devworkspaceTemplateSubresource
             );
-            return (resp.body as any).items as IDevWorkspaceTemplate[];
+            return (resp.body as any).items as V1alpha2DevWorkspaceTemplate[];
         } catch (e) {
             return Promise.reject(new NodeRequestError(e));
         }
     }
 
-    async getByName(namespace: string, name: string): Promise<IDevWorkspaceTemplate> {
+    async getByName(namespace: string, name: string): Promise<V1alpha2DevWorkspaceTemplate> {
         try {
             const resp = await this.customObjectAPI.getNamespacedCustomObject(
                 devWorkspaceApiGroup,
@@ -50,25 +48,24 @@ export class NodeDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
                 devworkspaceTemplateSubresource,
                 name
             );
-            return resp.body as IDevWorkspaceTemplate;
+            return resp.body as V1alpha2DevWorkspaceTemplate;
         } catch (e) {
             return Promise.reject(new NodeRequestError(e));
         }
     }
 
     async create(
-        devworkspaceTemplate: IDevWorkspaceTemplate,
-    ): Promise<IDevWorkspaceTemplate> {
+        devworkspaceTemplate: V1alpha2DevWorkspaceTemplate,
+    ): Promise<V1alpha2DevWorkspaceTemplate> {
         try {
-            const namespace = devworkspaceTemplate.metadata.namespace;
             const resp = await this.customObjectAPI.createNamespacedCustomObject(
                 devWorkspaceApiGroup,
                 devworkspaceVersion,
-                namespace,
+                devworkspaceTemplate.metadata?.namespace || '',
                 devworkspaceTemplateSubresource,
                 devworkspaceTemplate
             );
-            return resp.body as IDevWorkspaceTemplate;
+            return resp.body as V1alpha2DevWorkspaceTemplate;
         } catch (e) {
             return Promise.reject(new NodeRequestError(e));
         }

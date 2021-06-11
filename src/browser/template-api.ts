@@ -11,7 +11,8 @@
  */
 
 import { AxiosInstance } from 'axios';
-import { IDevWorkspaceTemplate, IDevWorkspaceTemplateApi } from '../types';
+import { V1alpha2DevWorkspaceTemplate } from '@devfile/api';
+import { IDevWorkspaceTemplateApi } from '../types';
 import { devworkspaceVersion, devWorkspaceApiGroup, devworkspaceTemplateSubresource } from '../common';
 import { BrowserRequestError } from './helper';
 
@@ -26,7 +27,7 @@ export class RestDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
     this._axios = axios;
   };
 
-  async listInNamespace(namespace: string): Promise<IDevWorkspaceTemplate[]> {
+  async listInNamespace(namespace: string): Promise<V1alpha2DevWorkspaceTemplate[]> {
     try {
       const resp = await this._axios.get(
         `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspaceTemplateSubresource}`
@@ -40,7 +41,7 @@ export class RestDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
   async getByName(
     namespace: string,
     name: string
-  ): Promise<IDevWorkspaceTemplate> {
+  ): Promise<V1alpha2DevWorkspaceTemplate> {
     try {
       const resp = await this._axios.get(
         `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${namespace}/${devworkspaceTemplateSubresource}/${name}`
@@ -52,11 +53,11 @@ export class RestDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
   }
 
   async create(
-    devworkspaceTemplate: IDevWorkspaceTemplate,
-  ): Promise<IDevWorkspaceTemplate> {
+    devworkspaceTemplate: V1alpha2DevWorkspaceTemplate,
+  ): Promise<V1alpha2DevWorkspaceTemplate> {
     try {
       const resp = await this._axios.post(
-        `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${devworkspaceTemplate.metadata.namespace}/${devworkspaceTemplateSubresource}`,
+        `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${devworkspaceTemplate.metadata?.namespace}/${devworkspaceTemplateSubresource}`,
         devworkspaceTemplate,
         {
           headers: {

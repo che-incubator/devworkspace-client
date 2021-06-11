@@ -13,11 +13,12 @@
 import { isInCluster } from '../src/node/helper';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
-import { IDevWorkspaceDevfile, IDevWorkspaceTemplate, INVERSIFY_TYPES } from '../src';
+import { INVERSIFY_TYPES } from '../src';
 import { delay } from '../src/common/helper';
 import { conditionalTest, isIntegrationTestEnabled } from './utils/suite';
 import { container } from '../src/node/inversify.config';
 import { DevWorkspaceClient } from '../src/node/client';
+import { V1alpha2DevWorkspaceTemplate, V220Devfile } from '@devfile/api';
 
 describe('DevWorkspace API integration testing against cluster', () => {
 
@@ -35,9 +36,9 @@ describe('DevWorkspace API integration testing against cluster', () => {
             const nodeApi = devWorkspaceClient.getNodeApi({
                 inCluster: isInCluster()
             });
-            const devfile = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-devfile.yaml', 'utf-8')) as IDevWorkspaceDevfile;
+            const devfile = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-devfile.yaml', 'utf-8')) as V220Devfile;
             const name = devfile.metadata.name;
-            const namespace = devfile.metadata.namespace;
+            const namespace = 'sample';
 
             // check that api is enabled
             const isApiEnabled = await nodeApi.isDevWorkspaceApiEnabled();
@@ -57,31 +58,36 @@ describe('DevWorkspace API integration testing against cluster', () => {
 
             // check that creation works
             const newDevWorkspace = await nodeApi.devworkspaceApi.create(devfile, 'che', true);
-            expect(newDevWorkspace.metadata.name).toBe(name);
-            expect(newDevWorkspace.metadata.namespace).toBe(namespace);
+            expect(newDevWorkspace.metadata?.name).toBe(name);
+            expect(newDevWorkspace.metadata?.namespace).toBe(namespace);
 
             // check that retrieval works
             const allWorkspaces = await nodeApi.devworkspaceApi.listInNamespace(namespace);
             expect(allWorkspaces.length).toBe(1);
             const firstDevWorkspace = allWorkspaces[0];
-            expect(firstDevWorkspace.metadata.name).toBe(name);
-            expect(firstDevWorkspace.metadata.namespace).toBe(namespace);
+            expect(firstDevWorkspace.metadata?.name).toBe(name);
+            expect(firstDevWorkspace.metadata?.namespace).toBe(namespace);
 
             const singleNamespace = await nodeApi.devworkspaceApi.getByName(namespace, name);
-            expect(singleNamespace.metadata.name).toBe(name);
-            expect(singleNamespace.metadata.namespace).toBe(namespace);
+            expect(singleNamespace.metadata?.name).toBe(name);
+            expect(singleNamespace.metadata?.namespace).toBe(namespace);
 
             // check that updating works
             const changedWorkspace = await nodeApi.devworkspaceApi.changeStatus(namespace, name, false);
-            expect(changedWorkspace.spec.started).toBe(false);
+            expect(changedWorkspace.spec?.started).toBe(false);
 
             await delay(2000);
             const currentDevWorkspace = await nodeApi.devworkspaceApi.getByName(namespace, name);
             const sampleRouting = 'sample';
-            currentDevWorkspace.spec.routingClass = sampleRouting;
+            expect(currentDevWorkspace.spec).toBeNull()
+            if (currentDevWorkspace.spec) {
+                currentDevWorkspace.spec.routingClass = sampleRouting;
+            } else {
+                fail("DevWorkspace spec is nul")
+            }
 
             const updatedWorkspace = await nodeApi.devworkspaceApi.update(currentDevWorkspace);
-            expect(updatedWorkspace.spec.routingClass).toBe(sampleRouting);
+            expect(updatedWorkspace.spec?.routingClass).toBe(sampleRouting);
 
             // check that deletion works
             await nodeApi.devworkspaceApi.delete(namespace, name);
@@ -102,9 +108,10 @@ describe('DevWorkspace API integration testing against cluster', () => {
             const nodeApi = devWorkspaceClient.getNodeApi({
                 inCluster: isInCluster()
             });
-            const dwt = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-dwt.yaml', 'utf-8')) as IDevWorkspaceTemplate;
-            const name = dwt.metadata.name;
-            const namespace = dwt.metadata.namespace;
+            const dwt = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-dwt.yaml', 'utf-8')) as V1alpha2DevWorkspaceTemplate;
+            var dwtMeta = dwt.metadata as any
+            const name = dwtMeta.name;
+            const namespace = dwtMeta.namespace;
 
             // check that api is enabled
             const isApiEnabled = await nodeApi.isDevWorkspaceApiEnabled();
@@ -123,8 +130,9 @@ describe('DevWorkspace API integration testing against cluster', () => {
 
             // check that creation works
             const newDWT = await nodeApi.templateApi.create(dwt);
-            expect(newDWT.metadata.name).toBe(name);
-            expect(newDWT.metadata.namespace).toBe(namespace);
+            var dwtMeta = newDWT.metadata as any
+            expect(dwtMeta.name).toBe(name);
+            expect(dwtMeta.namespace).toBe(namespace);
 
             await delay(5000);
 
@@ -132,12 +140,14 @@ describe('DevWorkspace API integration testing against cluster', () => {
             const allTemplates = await nodeApi.templateApi.listInNamespace(namespace);
             expect(allTemplates.length).toBe(1);
             const firstTemplate = allTemplates[0];
-            expect(firstTemplate.metadata.name).toBe(name);
-            expect(firstTemplate.metadata.namespace).toBe(namespace);
+            var dwtMeta = firstTemplate.metadata as any
+            expect(dwtMeta.name).toBe(name);
+            expect(dwtMeta.namespace).toBe(namespace);
 
             const singleNamespace = await nodeApi.templateApi.getByName(namespace, name);
-            expect(singleNamespace.metadata.name).toBe(name);
-            expect(singleNamespace.metadata.namespace).toBe(namespace);
+            var dwtMeta = singleNamespace.metadata as any
+            expect(dwtMeta.name).toBe(name);
+            expect(dwtMeta.namespace).toBe(namespace);
 
             // check that deletion works
             await nodeApi.templateApi.delete(namespace, name);

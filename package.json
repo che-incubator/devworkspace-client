@@ -18,6 +18,7 @@
   ],
   "license": "EPL-2.0",
   "dependencies": {
+    "@devfile/api": "^2.2.0-alpha-1627025889",
     "@kubernetes/client-node": "^0.14.0",
     "axios": "^0.21.1",
     "inversify": "^5.0.5",
