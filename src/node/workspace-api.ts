@@ -21,7 +21,6 @@ import {
   devworkspaceVersion,
   devWorkspaceApiGroup,
 } from '../common';
-import { devfileToDevWorkspace } from '../common/converter';
 import { injectable } from 'inversify';
 import { NodeRequestError } from './errors';
 
@@ -66,12 +65,9 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
   }
 
   async create(
-    devfile: V220Devfile,
-    routingClass: string,
-    started: boolean = true
+    devworkspace: V1alpha2DevWorkspace
   ): Promise<V1alpha2DevWorkspace> {
     try {
-      const devworkspace = devfileToDevWorkspace(devfile, routingClass, started);
       const resp = await this.customObjectAPI.createNamespacedCustomObject(
         devWorkspaceApiGroup,
         devworkspaceVersion,

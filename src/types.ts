@@ -22,11 +22,7 @@ export interface IDevWorkspaceApi {
     config: k8s.KubeConfig | AxiosInstance;
     listInNamespace(namespace: string): Promise<V1alpha2DevWorkspace[]>;
     getByName(namespace: string, name: string): Promise<V1alpha2DevWorkspace>;
-    create(
-        devfile: V220Devfile,
-        routingClass: string,
-        started?: boolean,
-    ): Promise<V1alpha2DevWorkspace>;
+    create(devworkspace: V1alpha2DevWorkspace): Promise<V1alpha2DevWorkspace>;
     update(devworkspace: V1alpha2DevWorkspace): Promise<V1alpha2DevWorkspace>;
     delete(namespace: string, name: string): Promise<void>;
     patch(namespace: string, name: string, patches: Patch[]): Promise<V1alpha2DevWorkspace>;

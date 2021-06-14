@@ -11,7 +11,7 @@
  */
 
 import { AxiosInstance } from 'axios';
-import { devfileToDevWorkspace } from '../common/converter';
+
 import { Patch } from '../types';
 import { deletePolicy, deletionOptions } from '../common/models';
 import { IDevWorkspaceApi } from '../index';
@@ -57,14 +57,10 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
   }
 
   async create(
-    devfile: V220Devfile,
-    routingClass: string,
-    started = true
+    devworkspace: V1alpha2DevWorkspace
   ): Promise<V1alpha2DevWorkspace> {
     try {
-      const devworkspace = devfileToDevWorkspace(devfile, routingClass, started);
       const stringifiedDevWorkspace = JSON.stringify(devworkspace);
-  
       const resp = await this._axios.post(
         `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${devworkspace.metadata?.namespace}/${devworkspacePluralSubresource}`,
         stringifiedDevWorkspace,

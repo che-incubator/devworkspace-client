@@ -13,6 +13,7 @@
 import { isInCluster } from '../src/node/helper';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
+import { devfileToDevWorkspace } from '../src';
 import { INVERSIFY_TYPES } from '../src';
 import { delay } from '../src/common/helper';
 import { conditionalTest, isIntegrationTestEnabled } from './utils/suite';
@@ -56,8 +57,9 @@ describe('DevWorkspace API integration testing against cluster', () => {
              }
              expect(namespaceExists).toBe(true);
 
+
             // check that creation works
-            const newDevWorkspace = await nodeApi.devworkspaceApi.create(devfile, 'che', true);
+            const newDevWorkspace = await nodeApi.devworkspaceApi.create(devfileToDevWorkspace(devfile, 'che', true));
             expect(newDevWorkspace.metadata?.name).toBe(name);
             expect(newDevWorkspace.metadata?.namespace).toBe(namespace);
 
@@ -79,7 +81,6 @@ describe('DevWorkspace API integration testing against cluster', () => {
             await delay(2000);
             const currentDevWorkspace = await nodeApi.devworkspaceApi.getByName(namespace, name);
             const sampleRouting = 'sample';
-            expect(currentDevWorkspace.spec).toBeNull()
             if (currentDevWorkspace.spec) {
                 currentDevWorkspace.spec.routingClass = sampleRouting;
             } else {
