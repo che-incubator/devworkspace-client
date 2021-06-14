@@ -80,9 +80,15 @@ describe('DevWorkspace API integration testing against cluster', () => {
             // check that deletion works
             await nodeApi.devworkspaceApi.delete(namespace, name);
             await delay(5000);
-            const finalNamespaces = await nodeApi.devworkspaceApi.listInNamespace(namespace);
-            expect(finalNamespaces.length).toBe(0);
-
+            const dwsInNamespace = await nodeApi.devworkspaceApi.listInNamespace(namespace);
+            var nonTerminatingWsCount = 0
+            for (const dw of dwsInNamespace) {
+                console.log(dw.status?.phase)
+                if (dw.status?.phase != 'Terminating') {
+                    nonTerminatingWsCount++;
+                }
+            }
+            expect(nonTerminatingWsCount).toBe(0);
             done();
         }, 60000);
 
