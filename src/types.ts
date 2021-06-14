@@ -12,6 +12,7 @@
 
 import * as k8s from '@kubernetes/client-node';
 import { AxiosInstance } from 'axios';
+import { V1alpha2DevWorkspace, V1alpha2DevWorkspaceTemplate, V1alpha2DevWorkspaceSpecTemplate, V1alpha2DevWorkspaceSpecTemplateCommands, V1alpha2DevWorkspaceSpecTemplateComponents, V1alpha2DevWorkspaceSpecTemplateEvents, V1alpha2DevWorkspaceSpecTemplateParent, V1alpha2DevWorkspaceSpecTemplateProjects, V1alpha2DevWorkspaceSpecTemplateStarterProjects } from '@devfile/api';
 
 export interface IDevWorkspaceClient {
     getNodeApi(config: INodeConfig): IDevWorkspaceClientApi;
@@ -19,25 +20,21 @@ export interface IDevWorkspaceClient {
 
 export interface IDevWorkspaceApi {
     config: k8s.KubeConfig | AxiosInstance;
-    listInNamespace(namespace: string): Promise<IDevWorkspace[]>;
-    getByName(namespace: string, name: string): Promise<IDevWorkspace>;
-    create(
-        devfile: IDevWorkspaceDevfile,
-        routingClass: string,
-        started?: boolean,
-    ): Promise<IDevWorkspace>;
-    update(devworkspace: IDevWorkspace): Promise<IDevWorkspace>;
+    listInNamespace(namespace: string): Promise<V1alpha2DevWorkspace[]>;
+    getByName(namespace: string, name: string): Promise<V1alpha2DevWorkspace>;
+    create(devworkspace: V1alpha2DevWorkspace): Promise<V1alpha2DevWorkspace>;
+    update(devworkspace: V1alpha2DevWorkspace): Promise<V1alpha2DevWorkspace>;
     delete(namespace: string, name: string): Promise<void>;
-    patch(namespace: string, name: string, patches: Patch[]): Promise<IDevWorkspace>;
-    changeStatus(namespace: string, name: string, started: boolean): Promise<IDevWorkspace>;
+    patch(namespace: string, name: string, patches: Patch[]): Promise<V1alpha2DevWorkspace>;
+    changeStatus(namespace: string, name: string, started: boolean): Promise<V1alpha2DevWorkspace>;
 }
 
 export interface IDevWorkspaceTemplateApi {
     config: k8s.KubeConfig | AxiosInstance;
-    listInNamespace(namespace: string): Promise<IDevWorkspaceTemplate[]>;
-    getByName(namespace: string, name: string): Promise<IDevWorkspaceTemplate>;
+    listInNamespace(namespace: string): Promise<V1alpha2DevWorkspaceTemplate[]>;
+    getByName(namespace: string, name: string): Promise<V1alpha2DevWorkspaceTemplate>;
     delete(namespace: string, name: string): Promise<void>;
-    create(template: IDevWorkspaceTemplate): Promise<IDevWorkspaceTemplate>;
+    create(template: V1alpha2DevWorkspaceTemplate): Promise<V1alpha2DevWorkspaceTemplate>;
 }
 
 export interface IDevWorkspaceClientApi {
@@ -53,47 +50,6 @@ export interface ICheApi {
     initializeNamespace(namespace: string): Promise<void>;
 }
 
-export interface IDevWorkspace {
-    apiVersion: string;
-    kind: string;
-    metadata: {
-        name: string;
-        namespace: string;
-        creationTimestamp?: string;
-        deletionTimestamp?: string;
-        uid?: string;
-        annotations?: any;
-    };
-    spec: IDevWorkspaceSpec,
-    status: {
-        mainUrl: string;
-        phase: string;
-        devworkspaceId: string;
-        message?: string;
-    };
-}
-
-export interface IDevWorkspaceSpec {
-    started: boolean;
-    routingClass: string;
-    template: {
-        projects?: any;
-        components?: any[];
-        commands?: any;
-        events?: any;
-    }
-}
-
-export interface IDevWorkspaceTemplate {
-    apiVersion: string;
-    kind: string;
-    metadata: {
-        name: string;
-        namespace: string;
-        ownerReferences: OwnerRefs[];
-    };
-    spec: IDevWorkspaceDevfile;
-}
 
 export interface OwnerRefs {
     apiVersion: string;
@@ -101,20 +57,6 @@ export interface OwnerRefs {
     name: string;
     uid: string;
 }
-
-export interface IDevWorkspaceDevfile {
-    schemaVersion: string;
-    metadata: {
-        name: string;
-        namespace: string;
-        attributes?: {[key: string]:any};
-    };
-    projects?: any;
-    components?: any;
-    commands?: any;
-    events?: any;
-}
-
 export interface INodeConfig {
     inCluster: boolean;
 }
@@ -130,6 +72,27 @@ export interface Patch {
     op: string;
     path: string;
     value?: any;
+}
+
+
+// IDevfile is V1alpha2DevWorkspaceSpecTemplate + metadata which is not available in devfile/api yet
+export interface IDevfile {
+    'schemaVersion': string,
+    'metadata': {
+        'name': string,
+        'namespace': string,
+        'attributes'?: object;
+    },
+    'attributes'?: object;
+    'commands'?: Array<V1alpha2DevWorkspaceSpecTemplateCommands>;
+    'components'?: Array<V1alpha2DevWorkspaceSpecTemplateComponents>;
+    'events'?: V1alpha2DevWorkspaceSpecTemplateEvents;
+    'parent'?: V1alpha2DevWorkspaceSpecTemplateParent;
+    'projects'?: Array<V1alpha2DevWorkspaceSpecTemplateProjects>;
+    'starterProjects'?: Array<V1alpha2DevWorkspaceSpecTemplateStarterProjects>;
+    'variables'?: {
+        [key: string]: string;
+    };
 }
 
 export const INVERSIFY_TYPES = {

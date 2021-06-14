@@ -11,10 +11,9 @@
  */
 
 import * as k8s from '@kubernetes/client-node';
+import { V1alpha2DevWorkspace } from '@devfile/api';
 import {
-  IDevWorkspace,
   IDevWorkspaceApi,
-  IDevWorkspaceDevfile,
   Patch,
 } from '../types';
 import {
@@ -22,7 +21,6 @@ import {
   devworkspaceVersion,
   devWorkspaceApiGroup,
 } from '../common';
-import { devfileToDevWorkspace } from '../common/converter';
 import { injectable } from 'inversify';
 import { NodeRequestError } from './errors';
 
@@ -34,7 +32,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
     this.customObjectAPI = kc.makeApiClient(k8s.CustomObjectsApi);
   }
 
-  async listInNamespace(namespace: string): Promise<IDevWorkspace[]> {
+  async listInNamespace(namespace: string): Promise<V1alpha2DevWorkspace[]> {
     try {
       const resp = await this.customObjectAPI.listNamespacedCustomObject(
         devWorkspaceApiGroup,
@@ -42,7 +40,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
         namespace,
         devworkspacePluralSubresource
       );
-      return (resp.body as any).items as IDevWorkspace[];
+      return (resp.body as any).items as V1alpha2DevWorkspace[];
     } catch (e) {
       return Promise.reject(new NodeRequestError(e));
     }
@@ -51,7 +49,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
   async getByName(
     namespace: string,
     name: string
-  ): Promise<IDevWorkspace> {
+  ): Promise<V1alpha2DevWorkspace> {
     try {
       const resp = await this.customObjectAPI.getNamespacedCustomObject(
         devWorkspaceApiGroup,
@@ -60,20 +58,18 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
         devworkspacePluralSubresource,
         name
       );
-      return resp.body as IDevWorkspace;
+      return resp.body as V1alpha2DevWorkspace;
     } catch (e) {
       return Promise.reject(new NodeRequestError(e));
     }
   }
 
   async create(
-    devfile: IDevWorkspaceDevfile,
-    routingClass: string,
-    started: boolean = true
-  ): Promise<IDevWorkspace> {
+    devworkspace: V1alpha2DevWorkspace
+  ): Promise<V1alpha2DevWorkspace> {
     try {
-      const devworkspace = devfileToDevWorkspace(devfile, routingClass, started);
-      const namespace = devfile.metadata.namespace;
+      const dwMeta = devworkspace.metadata as any;
+      const namespace = dwMeta.namespace;
       const resp = await this.customObjectAPI.createNamespacedCustomObject(
         devWorkspaceApiGroup,
         devworkspaceVersion,
@@ -81,27 +77,28 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
         devworkspacePluralSubresource,
         devworkspace
       );
-      return resp.body as IDevWorkspace;
+      return resp.body as V1alpha2DevWorkspace;
     } catch (e) {
       return Promise.reject(new NodeRequestError(e));
     }
   }
 
-  async update(devworkspace: IDevWorkspace): Promise<IDevWorkspace> {
+  async update(devworkspace: V1alpha2DevWorkspace): Promise<V1alpha2DevWorkspace> {
     try {
       // You have to delete some elements from the devworkspace in order to update
-      if (devworkspace.metadata?.uid) {
-        devworkspace.metadata.uid = undefined;
+      const metadata = (devworkspace.metadata as any);
+      if (metadata?.uid) {
+        metadata.uid = undefined;
       }
-      if (devworkspace.metadata.creationTimestamp) {
-        delete devworkspace.metadata.creationTimestamp;
+      if (metadata.creationTimestamp) {
+        delete metadata.creationTimestamp;
       }
-      if (devworkspace.metadata.deletionTimestamp) {
-        delete devworkspace.metadata.deletionTimestamp;
+      if (metadata.deletionTimestamp) {
+        delete metadata.deletionTimestamp;
       }
 
-      const name = devworkspace.metadata.name;
-      const namespace = devworkspace.metadata.namespace;
+      const name = metadata.name;
+      const namespace = metadata.namespace;
 
       const resp = await this.customObjectAPI.replaceNamespacedCustomObject(
         devWorkspaceApiGroup,
@@ -111,7 +108,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
         name,
         devworkspace
       )
-      return resp.body as IDevWorkspace;
+      return resp.body as V1alpha2DevWorkspace;
     } catch (e) {
       return Promise.reject(new NodeRequestError(e));
     }
@@ -135,7 +132,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
    * Patch a devworkspace
    * @param devworkspace The devworkspace you want to patch
    */
-  async patch(namespace: string, name: string, patches: Patch[]): Promise<IDevWorkspace> {
+  async patch(namespace: string, name: string, patches: Patch[]): Promise<V1alpha2DevWorkspace> {
     return this.createPatch(namespace, name, patches);
   }
 
@@ -143,7 +140,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
     namespace: string,
     name: string,
     started: boolean
-  ): Promise<IDevWorkspace> {
+  ): Promise<V1alpha2DevWorkspace> {
     return this.createPatch(namespace, name, [{
       op: 'replace',
       path: '/spec/started',
@@ -173,7 +170,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
         undefined,
         options
       );
-      return resp.body as IDevWorkspace;
+      return resp.body as V1alpha2DevWorkspace;
     } catch (e) {
       return Promise.reject(new NodeRequestError(e));
     }
