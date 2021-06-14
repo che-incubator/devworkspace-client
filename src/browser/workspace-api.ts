@@ -11,8 +11,7 @@
  */
 
 import { AxiosInstance } from 'axios';
-import { devfileToDevWorkspace } from '../common/converter';
-import { IDevfile, Patch } from '../types';
+import { Patch } from '../types';
 import { deletePolicy, deletionOptions } from '../common/models';
 import { IDevWorkspaceApi } from '../index';
 import { delay } from '../common/helper';
@@ -57,16 +56,13 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
   }
 
   async create(
-    devfile: IDevfile,
-    routingClass: string,
-    started = true
+    devworkpace: V1alpha2DevWorkspace
   ): Promise<V1alpha2DevWorkspace> {
     try {
-      const devworkspace = devfileToDevWorkspace(devfile, routingClass, started);
-      const stringifiedDevWorkspace = JSON.stringify(devworkspace);
-  
+      const stringifiedDevWorkspace = JSON.stringify(devworkpace);
+      const dwMeta = devworkpace.metadata as any
       const resp = await this._axios.post(
-        `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${devfile.metadata.namespace}/${devworkspacePluralSubresource}`,
+        `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/namespaces/${dwMeta.namespace}/${devworkspacePluralSubresource}`,
         stringifiedDevWorkspace,
         {
           headers: {

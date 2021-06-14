@@ -14,7 +14,6 @@ import * as k8s from '@kubernetes/client-node';
 import { V1alpha2DevWorkspace } from '@devfile/api';
 import {
   IDevWorkspaceApi,
-  IDevfile,
   Patch,
 } from '../types';
 import {
@@ -22,7 +21,6 @@ import {
   devworkspaceVersion,
   devWorkspaceApiGroup,
 } from '../common';
-import { devfileToDevWorkspace } from '../common/converter';
 import { injectable } from 'inversify';
 import { NodeRequestError } from './errors';
 
@@ -67,13 +65,11 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
   }
 
   async create(
-    devfile: IDevfile,
-    routingClass: string,
-    started: boolean = true
+    devworkspace: V1alpha2DevWorkspace
   ): Promise<V1alpha2DevWorkspace> {
     try {
-      const devworkspace = devfileToDevWorkspace(devfile, routingClass, started);
-      const namespace = devfile.metadata.namespace;
+      const dwMeta = devworkspace.metadata as any;
+      const namespace = dwMeta.namespace;
       const resp = await this.customObjectAPI.createNamespacedCustomObject(
         devWorkspaceApiGroup,
         devworkspaceVersion,
