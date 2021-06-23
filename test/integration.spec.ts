@@ -44,10 +44,16 @@ describe('DevWorkspace API integration testing against cluster', () => {
             expect(isApiEnabled).toBe(true);
 
             // check that the namespace is initialized
-            await nodeApi.cheApi.initializeNamespace(namespace);
-            await delay(5000);
-            const projectExists = await (nodeApi.cheApi as any).doesProjectExist(namespace);
-            expect(projectExists).toBe(true);
+             // initialize namespace if it doesn't exist
+             await nodeApi.cheApi.initializeNamespace(namespace);
+             await delay(5000);
+             var namespaceExists: boolean;
+             if (await (nodeApi.cheApi as any).isOpenShift()) {
+                namespaceExists = await (nodeApi.cheApi as any).doesProjectExist(namespace);
+             } else {
+                namespaceExists = await (nodeApi.cheApi as any).doesNamespaceExist(namespace);
+             }
+             expect(namespaceExists).toBe(true);
 
             // check that creation works
             const newDevWorkspace = await nodeApi.devworkspaceApi.create(devfile, 'che', true);
@@ -83,7 +89,6 @@ describe('DevWorkspace API integration testing against cluster', () => {
             const dwsInNamespace = await nodeApi.devworkspaceApi.listInNamespace(namespace);
             var nonTerminatingWsCount = 0
             for (const dw of dwsInNamespace) {
-                console.log(dw.status?.phase)
                 if (dw.status?.phase != 'Terminating') {
                     nonTerminatingWsCount++;
                 }
@@ -105,11 +110,16 @@ describe('DevWorkspace API integration testing against cluster', () => {
             const isApiEnabled = await nodeApi.isDevWorkspaceApiEnabled();
             expect(isApiEnabled).toBe(true);
 
-            // initialize project if it doesn't exist
+            // initialize namespace if it doesn't exist
             await nodeApi.cheApi.initializeNamespace(namespace);
             await delay(5000);
-            const projectExists = await (nodeApi.cheApi as any).doesProjectExist(namespace);
-            expect(projectExists).toBe(true);
+            var namespaceExists: boolean;
+            if (await (nodeApi.cheApi as any).isOpenShift()) {
+               namespaceExists = await (nodeApi.cheApi as any).doesProjectExist(namespace);
+            } else {
+               namespaceExists = await (nodeApi.cheApi as any).doesNamespaceExist(namespace);
+            }
+            expect(namespaceExists).toBe(true);
 
             // check that creation works
             const newDWT = await nodeApi.templateApi.create(dwt);
