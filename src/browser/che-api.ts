@@ -12,8 +12,8 @@
 
 import { AxiosInstance } from 'axios';
 import { delay } from '../common/helper';
-import { projectApiGroup, projectRequestId, projectsId } from '../common';
-import { projectRequestModel } from '../common/models';
+import { namespaceResources, projectApiGroup, projectRequestResources, projectResources } from '../common';
+import { namespaceModel, projectRequestModel } from '../common/models';
 import { isOpenShiftCluster } from './helper';
 import { ICheApi } from '../types';
 
@@ -38,12 +38,31 @@ export class RestCheApi implements ICheApi {
         this.createProject(namespace);
         await this.waitForProjectToBeReady(namespace);
       }
+    } else {
+      const doesNamespaceExists = await this.doesNamespaceExist(namespace);
+      if (!doesNamespaceExists) {
+        this.createNamespace(namespace);
+      }
+    }
+  }
+
+  private async doesNamespaceExist(projectName: string): Promise<boolean> {
+    try {
+      const projects = await this.axios.get(`/api/v1/${projectResources}`);
+      for (const proj of projects.data.items) {
+        if (proj.metadata.name === projectName) {
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      return false;
     }
   }
 
   private async doesProjectExist(projectName: string): Promise<boolean> {
     try {
-      const projects = await this.axios.get(`/apis/${projectApiGroup}/v1/${projectsId}`);
+      const projects = await this.axios.get(`/apis/${projectApiGroup}/v1/${projectResources}`);
       for (const proj of projects.data.items) {
         if (proj.metadata.name === projectName) {
           return true;
@@ -56,7 +75,11 @@ export class RestCheApi implements ICheApi {
   }
 
   private createProject(namespace: string): void {
-    this.axios.post(`/apis/${projectApiGroup}/v1/${projectRequestId}`, projectRequestModel(namespace));
+    this.axios.post(`/apis/${projectApiGroup}/v1/${projectRequestResources}`, projectRequestModel(namespace));
+  }
+
+  private createNamespace(namespace: string): void {
+    this.axios.post(`/api/v1/${namespaceResources}`, namespaceModel(namespace));
   }
 
   private async waitForProjectToBeReady(namespace: string): Promise<void> {

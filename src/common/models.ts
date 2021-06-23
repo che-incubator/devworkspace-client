@@ -22,6 +22,16 @@ export const projectRequestModel = (namespace: string) => {
   };
 };
 
+export const namespaceModel = (namespace: string) => {
+  return {
+    apiVersion: `v1`,
+    kind: 'Namespace',
+    metadata: {
+      name: namespace,
+    },
+  };
+};
+
 export enum deletePolicy {
   Background='Background',
   Foreground='Foreground'

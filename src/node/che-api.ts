@@ -16,21 +16,24 @@ import {
 } from '../types';
 import {
   projectApiGroup,
-  projectRequestId,
-  projectsId,
+  projectRequestResources,
+  projectResources,
 } from '../common';
-import { projectRequestModel } from '../common/models';
+import { projectRequestModel, namespaceModel } from '../common/models';
 import { findApi } from './helper';
 import { injectable } from 'inversify';
 import { NodeRequestError } from './errors';
+import { V1Namespace } from '@kubernetes/client-node';
 
 @injectable()
 export class NodeCheApi implements ICheApi {
   private customObjectAPI!: k8s.CustomObjectsApi;
+  private coreV1API!: k8s.CoreV1Api;
   private apisApi!: k8s.ApisApi;
 
   set config(kc: k8s.KubeConfig) {
     this.customObjectAPI = kc.makeApiClient(k8s.CustomObjectsApi);
+    this.coreV1API = kc.makeApiClient(k8s.CoreV1Api);
     this.apisApi = kc.makeApiClient(k8s.ApisApi);
   }
 
@@ -42,6 +45,11 @@ export class NodeCheApi implements ICheApi {
         if (!doesProjectAlreadyExist) {
           this.createProject(namespace);
         }
+      } else {
+        const doesNamespaceExist = await this.doesNamespaceExist(namespace);
+        if (!doesNamespaceExist) {
+          this.createNamespace(namespace);
+        }
       }
     } catch (e) {
       console.log(e);
@@ -50,7 +58,7 @@ export class NodeCheApi implements ICheApi {
 
   async doesProjectExist(projectName: string): Promise<boolean> {
     try {
-      const resp = await this.customObjectAPI.listClusterCustomObject(projectApiGroup, 'v1', projectsId);
+      const resp = await this.customObjectAPI.listClusterCustomObject(projectApiGroup, 'v1', projectResources);
       const projectList = (resp.body as any).items;
       return (
         projectList.filter((x: any) => x.metadata.name === projectName)
@@ -61,12 +69,24 @@ export class NodeCheApi implements ICheApi {
     }
   }
 
+  async doesNamespaceExist(namespace: string): Promise<boolean> {
+    try {
+      const resp = await this.coreV1API.readNamespace(namespace);
+      if (resp.body instanceof V1Namespace) {
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
   private async createProject(namespace: string): Promise<void> {
     try {
       await this.customObjectAPI.createClusterCustomObject(
         projectApiGroup,
         'v1',
-        projectRequestId,
+        projectRequestResources,
         projectRequestModel(namespace)
       );
     } catch (e) {
@@ -74,7 +94,17 @@ export class NodeCheApi implements ICheApi {
     }
   }
 
-  private async isOpenShift(): Promise<boolean> {
+  private async createNamespace(namespace: string): Promise<void> {
+    try {
+      await this.coreV1API.createNamespace(
+        namespaceModel(namespace)
+      );
+    } catch (e) {
+      return Promise.reject(new NodeRequestError(e));
+    }
+  }
+
+  async isOpenShift(): Promise<boolean> {
     try {
       return findApi(this.apisApi, projectApiGroup);
     } catch (e) {
