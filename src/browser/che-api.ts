@@ -46,11 +46,11 @@ export class RestCheApi implements ICheApi {
     }
   }
 
-  private async doesNamespaceExist(projectName: string): Promise<boolean> {
+  private async doesNamespaceExist(namespace: string): Promise<boolean> {
     try {
-      const projects = await this.axios.get(`/api/v1/${projectResources}`);
-      for (const proj of projects.data.items) {
-        if (proj.metadata.name === projectName) {
+      const namespaces = await this.axios.get(`/api/v1/${namespaceResources}`);
+      for (const n of namespaces.data.items) {
+        if (n.metadata.name === namespace) {
           return true;
         }
       }
