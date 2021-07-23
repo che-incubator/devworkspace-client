@@ -138,14 +138,6 @@ export class RestDevWorkspaceApi implements IDevWorkspaceApi {
     return this.createPatch(namespace, name, patches);
   }
 
-  async changeStatus(namespace: string, name: string, started: boolean): Promise<IDevWorkspace> {
-    return this.createPatch(namespace, name, [{
-      op: 'replace',
-      path: '/spec/started',
-      value: started
-    }]);
-  }
-
   private async createPatch(
     namespace: string,
     name: string,

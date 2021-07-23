@@ -44,7 +44,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
       );
       return (resp.body as any).items as IDevWorkspace[];
     } catch (e) {
-      return Promise.reject(new NodeRequestError(e));
+      throw new NodeRequestError(e);
     }
   }
 
@@ -62,7 +62,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
       );
       return resp.body as IDevWorkspace;
     } catch (e) {
-      return Promise.reject(new NodeRequestError(e));
+      throw new NodeRequestError(e);
     }
   }
 
@@ -83,7 +83,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
       );
       return resp.body as IDevWorkspace;
     } catch (e) {
-      return Promise.reject(new NodeRequestError(e));
+      throw new NodeRequestError(e);
     }
   }
 
@@ -113,7 +113,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
       )
       return resp.body as IDevWorkspace;
     } catch (e) {
-      return Promise.reject(new NodeRequestError(e));
+      throw new NodeRequestError(e);
     }
   }
 
@@ -127,7 +127,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
         name
       );
     } catch (e) {
-      return Promise.reject(new NodeRequestError(e));
+      throw new NodeRequestError(e);
     }
   }
 
@@ -137,18 +137,6 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
    */
   async patch(namespace: string, name: string, patches: Patch[]): Promise<IDevWorkspace> {
     return this.createPatch(namespace, name, patches);
-  }
-
-  async changeStatus(
-    namespace: string,
-    name: string,
-    started: boolean
-  ): Promise<IDevWorkspace> {
-    return this.createPatch(namespace, name, [{
-      op: 'replace',
-      path: '/spec/started',
-      value: started
-    }]);
   }
 
   private async createPatch(
@@ -175,7 +163,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
       );
       return resp.body as IDevWorkspace;
     } catch (e) {
-      return Promise.reject(new NodeRequestError(e));
+      throw new NodeRequestError(e);
     }
   }
 }
