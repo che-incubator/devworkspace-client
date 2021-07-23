@@ -71,10 +71,6 @@ describe('DevWorkspace API integration testing against cluster', () => {
             expect(singleNamespace.metadata.name).toBe(name);
             expect(singleNamespace.metadata.namespace).toBe(namespace);
 
-            // check that updating works
-            const changedWorkspace = await nodeApi.devworkspaceApi.changeStatus(namespace, name, false);
-            expect(changedWorkspace.spec.started).toBe(false);
-
             await delay(2000);
             const currentDevWorkspace = await nodeApi.devworkspaceApi.getByName(namespace, name);
             const sampleRouting = 'sample';

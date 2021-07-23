@@ -29,7 +29,6 @@ export interface IDevWorkspaceApi {
     update(devworkspace: IDevWorkspace): Promise<IDevWorkspace>;
     delete(namespace: string, name: string): Promise<void>;
     patch(namespace: string, name: string, patches: Patch[]): Promise<IDevWorkspace>;
-    changeStatus(namespace: string, name: string, started: boolean): Promise<IDevWorkspace>;
 }
 
 export interface IDevWorkspaceTemplateApi {
