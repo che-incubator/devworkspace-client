@@ -1,6 +1,6 @@
 const path = require('path');
 
-var server = {
+const server = {
     entry: './src/index.ts',
     devtool: 'source-map',
     module: {
@@ -29,7 +29,7 @@ var server = {
     },
 };
 
-var client = {
+const client = {
     entry: './src/index.ts',
     devtool: 'source-map',
     module: {

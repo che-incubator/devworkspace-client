@@ -12,14 +12,23 @@
 
 import 'reflect-metadata';
 import { Container, interfaces } from 'inversify';
-import { NodeDevWorkspaceTemplateApi } from './template-api';
-import { ICheApi, IDevWorkspaceApi, IDevWorkspaceClientApi, IDevWorkspaceTemplateApi, INodeConfig, INVERSIFY_TYPES } from '../types';
-import { NodeDevWorkspaceApi } from './workspace-api';
-import { NodeApi } from './index';
+import { NodeDevWorkspaceTemplateApi } from './services/API/template-api';
+import {
+    ICheApi,
+    IDevWorkspaceApi,
+    IDevWorkspaceClientApi,
+    IDevWorkspaceTemplateApi,
+    IDevWorkspaceWatcher,
+    INodeConfig,
+    INVERSIFY_TYPES
+} from '../types';
+import { NodeDevWorkspaceApi } from './services/API/workspace-api';
+import { NodeApi } from './services/API';
 import * as k8s from '@kubernetes/client-node';
-import { isInCluster } from './helper';
+import { isInCluster } from './services/helpers';
 import { DevWorkspaceClient } from './client';
-import { NodeCheApi } from './che-api';
+import { NodeCheApi } from './services/API/che-api';
+import { NodeDevWorkspaceWatcher } from './services/API/workspace-watcher';
 
 const container = new Container();
 container.bind(INVERSIFY_TYPES.IDevWorkspaceClient).to(DevWorkspaceClient).inSingletonScope();
@@ -27,6 +36,7 @@ container.bind(INVERSIFY_TYPES.IDevWorkspaceNodeClientApi).to(NodeApi).inSinglet
 container.bind(INVERSIFY_TYPES.IDevWorkspaceNodeApi).to(NodeDevWorkspaceApi).inSingletonScope();
 container.bind(INVERSIFY_TYPES.IDevWorkspaceNodeTemplateApi).to(NodeDevWorkspaceTemplateApi).inSingletonScope();
 container.bind(INVERSIFY_TYPES.IDevWorkspaceNodeCheApi).to(NodeCheApi).inSingletonScope();
+container.bind(INVERSIFY_TYPES.IDevWorkspaceWatcher).to(NodeDevWorkspaceWatcher).inSingletonScope();
 
 container.bind<interfaces.Factory<IDevWorkspaceClientApi>>(INVERSIFY_TYPES.INodeApiFactory).toFactory<IDevWorkspaceClientApi>((context: interfaces.Context) => {
     return (nodeConfig: INodeConfig) => {
@@ -54,7 +64,10 @@ container.bind<interfaces.Factory<IDevWorkspaceClientApi>>(INVERSIFY_TYPES.INode
         const cheApi = context.container.get<ICheApi>(INVERSIFY_TYPES.IDevWorkspaceNodeCheApi);
         cheApi.config = kc;
 
+        const devWorkspaceWatcher = context.container.get<IDevWorkspaceWatcher>(INVERSIFY_TYPES.IDevWorkspaceWatcher);
+        devWorkspaceWatcher.config = kc;
+
         return devworkspaceClientAPI;
     };
 });
-export { container }
+export { container };

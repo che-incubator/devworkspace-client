@@ -15,23 +15,25 @@ import {
   IDevWorkspace,
   IDevWorkspaceApi,
   IDevWorkspaceDevfile,
-  Patch,
-} from '../types';
+  IPatch,
+} from '../../../types';
 import {
   devworkspacePluralSubresource,
   devworkspaceVersion,
   devWorkspaceApiGroup,
-} from '../common';
-import { devfileToDevWorkspace } from '../common/converter';
+} from '../../../common/const';
+import { devfileToDevWorkspace } from '../../../common/services/converter';
 import { injectable } from 'inversify';
-import { NodeRequestError } from './errors';
+import { NodeRequestError } from '../errors';
 
 @injectable()
 export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
   private customObjectAPI!: k8s.CustomObjectsApi;
+  private customObjectWatch!: k8s.Watch;
 
   set config(kc: k8s.KubeConfig) {
     this.customObjectAPI = kc.makeApiClient(k8s.CustomObjectsApi);
+    this.customObjectWatch = new k8s.Watch(kc);
   }
 
   async listInNamespace(namespace: string): Promise<IDevWorkspace[]> {
@@ -89,7 +91,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
 
   async update(devworkspace: IDevWorkspace): Promise<IDevWorkspace> {
     try {
-      // You have to delete some elements from the devworkspace in order to update
+      // you have to delete some elements from the devworkspace in order to update
       if (devworkspace.metadata?.uid) {
         devworkspace.metadata.uid = undefined;
       }
@@ -110,7 +112,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
         devworkspacePluralSubresource,
         name,
         devworkspace
-      )
+      );
       return resp.body as IDevWorkspace;
     } catch (e) {
       throw new NodeRequestError(e);
@@ -135,14 +137,14 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
    * Patch a devworkspace
    * @param devworkspace The devworkspace you want to patch
    */
-  async patch(namespace: string, name: string, patches: Patch[]): Promise<IDevWorkspace> {
+  async patch(namespace: string, name: string, patches: IPatch[]): Promise<IDevWorkspace> {
     return this.createPatch(namespace, name, patches);
   }
 
   private async createPatch(
     namespace: string,
     name: string,
-    patches: Patch[]) {
+    patches: IPatch[]) {
     try {
       const options = {
         headers: {

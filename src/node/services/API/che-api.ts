@@ -13,16 +13,16 @@
 import * as k8s from '@kubernetes/client-node';
 import {
     ICheApi,
-} from '../types';
+} from '../../../types';
 import {
   projectApiGroup,
   projectRequestResources,
   projectResources,
-} from '../common';
-import { projectRequestModel, namespaceModel } from '../common/models';
-import { findApi } from './helper';
+} from '../../../common/const';
+import { projectRequestModel, namespaceModel } from '../../../common/const/models';
+import { findApi } from '../helpers';
 import { injectable } from 'inversify';
-import { NodeRequestError } from './errors';
+import { NodeRequestError } from '../errors';
 import { V1Namespace } from '@kubernetes/client-node';
 
 @injectable()

@@ -17,6 +17,18 @@ export interface IDevWorkspaceClient {
     getNodeApi(config: INodeConfig): IDevWorkspaceClientApi;
 }
 
+export type IDevWorkspaceCallbacks = {
+    onStatusChange: (statusUpdate: { status: string; workspaceId: string }) => void;
+    onDeleted: (deletedWorkspacesIds: string) => void;
+    onAdded: (workspace: IDevWorkspace) => void;
+    onError: (error: string) => void;
+}
+
+export interface IDevWorkspaceWatcher {
+    config: k8s.KubeConfig | AxiosInstance;
+    watcher(namespace: string, callbacks: IDevWorkspaceCallbacks): Promise<{ abort: Function }>;
+}
+
 export interface IDevWorkspaceApi {
     config: k8s.KubeConfig | AxiosInstance;
     listInNamespace(namespace: string): Promise<IDevWorkspace[]>;
@@ -28,7 +40,7 @@ export interface IDevWorkspaceApi {
     ): Promise<IDevWorkspace>;
     update(devworkspace: IDevWorkspace): Promise<IDevWorkspace>;
     delete(namespace: string, name: string): Promise<void>;
-    patch(namespace: string, name: string, patches: Patch[]): Promise<IDevWorkspace>;
+    patch(namespace: string, name: string, patches: IPatch[]): Promise<IDevWorkspace>;
 }
 
 export interface IDevWorkspaceTemplateApi {
@@ -44,6 +56,7 @@ export interface IDevWorkspaceClientApi {
     devworkspaceApi: IDevWorkspaceApi;
     templateApi: IDevWorkspaceTemplateApi;
     cheApi: ICheApi;
+    devWorkspaceWatcher: IDevWorkspaceWatcher;
     isDevWorkspaceApiEnabled(): Promise<boolean>;
 }
 
@@ -63,7 +76,7 @@ export interface IDevWorkspace {
         uid?: string;
         annotations?: any;
     };
-    spec: IDevWorkspaceSpec,
+    spec: IDevWorkspaceSpec;
     status: {
         mainUrl: string;
         phase: string;
@@ -80,7 +93,7 @@ export interface IDevWorkspaceSpec {
         components?: any[];
         commands?: any;
         events?: any;
-    }
+    };
 }
 
 export interface IDevWorkspaceTemplate {
@@ -89,12 +102,12 @@ export interface IDevWorkspaceTemplate {
     metadata: {
         name: string;
         namespace: string;
-        ownerReferences: OwnerRefs[];
+        ownerReferences: IOwnerRefs[];
     };
     spec: IDevWorkspaceDevfile;
 }
 
-export interface OwnerRefs {
+export interface IOwnerRefs {
     apiVersion: string;
     kind: string;
     name: string;
@@ -106,7 +119,7 @@ export interface IDevWorkspaceDevfile {
     metadata: {
         name: string;
         namespace: string;
-        attributes?: {[key: string]:any};
+        attributes?: { [key: string]: any };
     };
     projects?: any;
     components?: any;
@@ -120,12 +133,10 @@ export interface INodeConfig {
 
 export interface IKubernetesGroupsModel {
     name: string;
-    versions: {
-        version: string;
-    }[];
+    versions: { version: string }[];
 }
 
-export interface Patch {
+export interface IPatch {
     op: string;
     path: string;
     value?: any;
@@ -137,5 +148,6 @@ export const INVERSIFY_TYPES = {
     IDevWorkspaceNodeClientApi: Symbol('IDevWorkspaceNodeClientApi'),
     IDevWorkspaceNodeTemplateApi: Symbol('IDevWorkspaceNodeTemplateApi'),
     IDevWorkspaceNodeApi: Symbol('IDevWorkspaceNodeApi'),
-    IDevWorkspaceNodeCheApi: Symbol('IDevWorkspaceNodeCheApi')
-}
+    IDevWorkspaceNodeCheApi: Symbol('IDevWorkspaceNodeCheApi'),
+    IDevWorkspaceWatcher: Symbol('IDevWorkspaceWatcher')
+};

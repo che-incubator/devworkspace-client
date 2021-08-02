@@ -12,12 +12,12 @@
 
 import * as k8s from '@kubernetes/client-node';
 import { injectable } from 'inversify';
-import { NodeRequestError } from './errors';
-import { devWorkspaceApiGroup, devworkspaceTemplateSubresource, devworkspaceVersion } from '../common';
+import { NodeRequestError } from '../errors';
+import { devWorkspaceApiGroup, devworkspaceTemplateSubresource, devworkspaceVersion } from '../../../common/const';
 import {
     IDevWorkspaceTemplate,
     IDevWorkspaceTemplateApi,
-} from '../types';
+} from '../../../types';
 
 @injectable()
 export class NodeDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
