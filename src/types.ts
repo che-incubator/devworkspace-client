@@ -11,7 +11,6 @@
  */
 
 import * as k8s from '@kubernetes/client-node';
-import { AxiosInstance } from 'axios';
 
 export interface IDevWorkspaceClient {
     getNodeApi(config: INodeConfig): IDevWorkspaceClientApi;
@@ -19,18 +18,18 @@ export interface IDevWorkspaceClient {
 
 export type IDevWorkspaceCallbacks = {
     onStatusChange: (statusUpdate: { status: string; workspaceId: string }) => void;
-    onDeleted: (deletedWorkspacesIds: string) => void;
+    onDeleted: (workspaceId: string) => void;
     onAdded: (workspace: IDevWorkspace) => void;
     onError: (error: string) => void;
 }
 
 export interface IDevWorkspaceWatcher {
-    config: k8s.KubeConfig | AxiosInstance;
+    config: k8s.KubeConfig;
     watcher(namespace: string, callbacks: IDevWorkspaceCallbacks): Promise<{ abort: Function }>;
 }
 
 export interface IDevWorkspaceApi {
-    config: k8s.KubeConfig | AxiosInstance;
+    config: k8s.KubeConfig;
     listInNamespace(namespace: string): Promise<IDevWorkspace[]>;
     getByName(namespace: string, name: string): Promise<IDevWorkspace>;
     create(
@@ -44,7 +43,7 @@ export interface IDevWorkspaceApi {
 }
 
 export interface IDevWorkspaceTemplateApi {
-    config: k8s.KubeConfig | AxiosInstance;
+    config: k8s.KubeConfig;
     listInNamespace(namespace: string): Promise<IDevWorkspaceTemplate[]>;
     getByName(namespace: string, name: string): Promise<IDevWorkspaceTemplate>;
     delete(namespace: string, name: string): Promise<void>;
@@ -52,7 +51,7 @@ export interface IDevWorkspaceTemplateApi {
 }
 
 export interface IDevWorkspaceClientApi {
-    config: k8s.KubeConfig | AxiosInstance;
+    config: k8s.KubeConfig;
     devworkspaceApi: IDevWorkspaceApi;
     templateApi: IDevWorkspaceTemplateApi;
     cheApi: ICheApi;
@@ -61,7 +60,7 @@ export interface IDevWorkspaceClientApi {
 }
 
 export interface ICheApi {
-    config: k8s.KubeConfig | AxiosInstance;
+    config: k8s.KubeConfig;
     initializeNamespace(namespace: string): Promise<void>;
 }
 

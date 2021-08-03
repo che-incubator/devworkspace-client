@@ -34,6 +34,6 @@ export async function findApi(apisApi: k8s.ApisApi, apiName: string, version?: s
     }
 }
 
-export const delay = (ms = 500) => {
-    return new Promise<void>(resolve => setTimeout(resolve, ms));
+export async function delay(ms = 500): Promise<void> {
+    await new Promise<void>(resolve => setTimeout(resolve, ms));
 };
