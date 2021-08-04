@@ -27,7 +27,6 @@ export class NodeDevWorkspaceWatcher implements IDevWorkspaceWatcher {
         const path = `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/watch/namespaces/${namespace}/devworkspaces`;
 
         return this.customObjectWatch.watch(path, {}, (type: string, devworkspace: IDevWorkspace) => {
-            const status = devworkspace!.status!.phase;
             const workspaceId = devworkspace!.status!.devworkspaceId;
 
             if (type === 'ADDED') {
