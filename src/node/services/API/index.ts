@@ -12,15 +12,15 @@
 
 import * as k8s from '@kubernetes/client-node';
 import { inject, injectable } from 'inversify';
-import { devWorkspaceApiGroup, devworkspaceVersion } from '../common';
+import { devWorkspaceApiGroup, devworkspaceVersion } from '../../../common/const';
 import {
   ICheApi,
   IDevWorkspaceApi,
   IDevWorkspaceClientApi,
-  IDevWorkspaceTemplateApi,
+  IDevWorkspaceTemplateApi, IDevWorkspaceWatcher,
   INVERSIFY_TYPES,
-} from '../types';
-import { findApi } from './helper';
+} from '../../../types';
+import { findApi } from '../helpers';
 
 @injectable()
 export class NodeApi implements IDevWorkspaceClientApi {
@@ -30,7 +30,8 @@ export class NodeApi implements IDevWorkspaceClientApi {
   constructor(
     @inject(INVERSIFY_TYPES.IDevWorkspaceNodeTemplateApi) private _templateApi: IDevWorkspaceTemplateApi,
     @inject(INVERSIFY_TYPES.IDevWorkspaceNodeApi) private _devworkspaceApi: IDevWorkspaceApi,
-    @inject(INVERSIFY_TYPES.IDevWorkspaceNodeCheApi) private _cheApi: ICheApi
+    @inject(INVERSIFY_TYPES.IDevWorkspaceNodeCheApi) private _cheApi: ICheApi,
+    @inject(INVERSIFY_TYPES.IDevWorkspaceWatcher) private _devWorkspaceWatcher: IDevWorkspaceWatcher
   ) {}
 
   set config(kc: k8s.KubeConfig) {
@@ -47,6 +48,10 @@ export class NodeApi implements IDevWorkspaceClientApi {
 
   get cheApi(): ICheApi {
     return this._cheApi;
+  }
+
+  get devWorkspaceWatcher(): IDevWorkspaceWatcher {
+    return this._devWorkspaceWatcher;
   }
 
   async isDevWorkspaceApiEnabled(): Promise<boolean> {

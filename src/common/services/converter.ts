@@ -10,8 +10,8 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { IDevWorkspace, IDevWorkspaceDevfile } from '../types';
-import { devworkspaceVersion, devWorkspaceApiGroup } from '.';
+import { IDevWorkspace, IDevWorkspaceDevfile } from '../../types';
+import { devworkspaceVersion, devWorkspaceApiGroup } from '../const';
 
 export function devfileToDevWorkspace(devfile: IDevWorkspaceDevfile, routingClass: string, started: boolean): IDevWorkspace {
     const devfileAttributes = devfile.metadata.attributes || {};

@@ -15,7 +15,7 @@ import { inject, injectable } from 'inversify';
 
 @injectable()
 export class DevWorkspaceClient implements IDevWorkspaceClient {
-    
+
     constructor(
         @inject(INVERSIFY_TYPES.INodeApiFactory) private nodeFactory: (config: INodeConfig) => IDevWorkspaceClientApi) {
     }

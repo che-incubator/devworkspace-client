@@ -10,11 +10,11 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { isInCluster } from '../src/node/helper';
+import { isInCluster } from '../src/node/services/helpers/index';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import { IDevWorkspaceDevfile, IDevWorkspaceTemplate, INVERSIFY_TYPES } from '../src';
-import { delay } from '../src/common/helper';
+import { delay } from '../src/node/services/helpers';
 import { conditionalTest, isIntegrationTestEnabled } from './utils/suite';
 import { container } from '../src/node/inversify.config';
 import { DevWorkspaceClient } from '../src/node/client';

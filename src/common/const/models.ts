@@ -10,7 +10,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { projectApiGroup } from '.';
+import { projectApiGroup } from './index';
 
 export const projectRequestModel = (namespace: string) => {
   return {
@@ -33,8 +33,8 @@ export const namespaceModel = (namespace: string) => {
 };
 
 export enum deletePolicy {
-  Background='Background',
-  Foreground='Foreground'
+  Background = 'Background',
+  Foreground = 'Foreground'
 }
 
 export const deletionOptions = (policy: deletePolicy) => {
@@ -42,5 +42,5 @@ export const deletionOptions = (policy: deletePolicy) => {
     apiVersion: 'v1',
     kind: 'DeleteOptions',
     propagationPolicy: policy
-  }
-}
+  };
+};
