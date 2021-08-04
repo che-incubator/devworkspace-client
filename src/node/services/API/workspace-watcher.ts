@@ -29,9 +29,6 @@ export class NodeDevWorkspaceWatcher implements IDevWorkspaceWatcher {
         return this.customObjectWatch.watch(path, {}, (type: string, devworkspace: IDevWorkspace) => {
             const status = devworkspace!.status!.phase;
             const workspaceId = devworkspace!.status!.devworkspaceId;
-            if (!workspaceId || !status) {
-                return;
-            }
 
             if (type === 'ADDED') {
                 callbacks.onAdded(devworkspace);
