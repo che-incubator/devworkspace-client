@@ -1,10 +1,10 @@
 # DevWorkspace Client
 
-The DevWorkspace Client is a library for interacting with DevWorkspaces on your cluster. Both browser and node support are available. The browser side code uses the kubernetes api directly and the node side uses @kubernetes/client-node.
+The DevWorkspace Client is a library for interacting with DevWorkspaces and related objects on your cluster. It's node side library that wraps [@kubernetes/client-node](https://www.npmjs.com/package/@kubernetes/client-node).
+
+It's built and published on each commit from main branch into [@eclipse-che/devworkspace-client](https://www.npmjs.com/package/@eclipse-che/devworkspace-client)
 
 ## Examples
-
-Node side using @kubernetes/client-node:
 
 ```typescript
 import 'reflect-metadata';
