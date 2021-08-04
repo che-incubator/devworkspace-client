@@ -17,7 +17,7 @@ export interface IDevWorkspaceClient {
 }
 
 export type IDevWorkspaceCallbacks = {
-    onStatusChange: (statusUpdate: { status: string; workspaceId: string }) => void;
+    onModified: (workspace: IDevWorkspace) => void;
     onDeleted: (workspaceId: string) => void;
     onAdded: (workspace: IDevWorkspace) => void;
     onError: (error: string) => void;
