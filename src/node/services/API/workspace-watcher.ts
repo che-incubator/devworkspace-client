@@ -29,18 +29,16 @@ export class NodeDevWorkspaceWatcher implements IDevWorkspaceWatcher {
         return this.customObjectWatch.watch(path, {}, (type: string, devworkspace: IDevWorkspace) => {
             const status = devworkspace!.status!.phase;
             const workspaceId = devworkspace!.status!.devworkspaceId;
-            if (devworkspace.kind !== 'DevWorkspace' || !workspaceId || !status) {
+            if (!workspaceId || !status) {
                 return;
             }
 
             if (type === 'ADDED') {
                 callbacks.onAdded(devworkspace);
             } else if (type === 'MODIFIED') {
-                callbacks.onStatusChange({ workspaceId, status });
+                callbacks.onModified(devworkspace);
             } else if (type === 'DELETED') {
-                if (status === 'Terminating') {
-                    callbacks.onDeleted(workspaceId);
-                }
+                callbacks.onDeleted(workspaceId);
             } else {
                 callbacks.onError(`Error: Unknown type '${type}'.`);
             }
