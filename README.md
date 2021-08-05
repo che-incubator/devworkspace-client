@@ -6,19 +6,22 @@ It's built and published on each commit from main branch into [@eclipse-che/devw
 
 ## Examples
 
+With custom kubeconfig
+
 ```typescript
 import 'reflect-metadata';
 import { container, INVERSIFY_TYPES } from '@eclipse-che/devworkspace-client';
+import * as k8s from '@kubernes/client-node'
 
-const devworkspaceClient = container.get(INVERSIFY_TYPES.IDevWorkspaceClient);
-const nodeApi = devworkspaceClient.getNodeApi({
-    inCluster: false
-});
-const devworkspaceApi = nodeApi.devworkspaceApi;
-const promise = devworkspaceApi.listInNamespace('my_namespace');
-promise.then((devworkspaces) => {
-    // process devworkspaces received from my_namespace
-});
+const kubeConfig = new k8s.KubeConfig();
+// todo init kubeConfig with the needed values
+
+const dwClient = new DevWorkspaceClient(kubeConfig);
+const dwApi = dwClient.devworkspaceApi;
+const dwList = await dwApi.listInNamespace('my_namespace');
+for (const dw of dwList.items) {
+   // process all the DevWorkpsaces in namespace
+}
 ```
 
 ## Developer support
@@ -43,7 +46,8 @@ Integration tests can be run locally by using `export INTEGRATION_TESTS=true`. R
 
 ### Environment variables
 
-`INTEGRATION_TESTS`: When the INTEGRATION_TESTS environment variable is defined and it's value is true, the integration tests will run against your currently authenticated cluster.
+- `INTEGRATION_TESTS`: When the INTEGRATION_TESTS environment variable is defined and it's value is true, the integration tests will run against current context from `KUBECONFIG`;
+- `KUBECONFIG`: The KUBECONFIG which should be used for getting the current cluster config, like `$HOME/.kube/config`;
 
 ## License
 

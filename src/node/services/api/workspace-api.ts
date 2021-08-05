@@ -13,7 +13,9 @@
 import * as k8s from '@kubernetes/client-node';
 import {
   IDevWorkspace,
+  IDevWorkspaceList,
   IDevWorkspaceApi,
+  IDevWorkspaceCallbacks,
   IDevWorkspaceDevfile,
   IPatch,
 } from '../../../types';
@@ -22,21 +24,20 @@ import {
   devworkspaceVersion,
   devWorkspaceApiGroup,
 } from '../../../common/const';
+
 import { devfileToDevWorkspace } from '../../../common/services/converter';
-import { injectable } from 'inversify';
 import { NodeRequestError } from '../errors';
 
-@injectable()
-export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
-  private customObjectAPI!: k8s.CustomObjectsApi;
-  private customObjectWatch!: k8s.Watch;
+export class DevWorkspaceApi implements IDevWorkspaceApi {
+  private customObjectAPI: k8s.CustomObjectsApi;
+  private customObjectWatch: k8s.Watch;
 
-  set config(kc: k8s.KubeConfig) {
+  constructor(kc: k8s.KubeConfig) {
     this.customObjectAPI = kc.makeApiClient(k8s.CustomObjectsApi);
     this.customObjectWatch = new k8s.Watch(kc);
   }
 
-  async listInNamespace(namespace: string): Promise<IDevWorkspace[]> {
+  async listInNamespace(namespace: string): Promise<IDevWorkspaceList> {
     try {
       const resp = await this.customObjectAPI.listNamespacedCustomObject(
         devWorkspaceApiGroup,
@@ -44,7 +45,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
         namespace,
         devworkspacePluralSubresource
       );
-      return (resp.body as any).items as IDevWorkspace[];
+      return resp.body as IDevWorkspaceList;
     } catch (e) {
       throw new NodeRequestError(e);
     }
@@ -121,7 +122,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
 
   async delete(namespace: string, name: string): Promise<void> {
     try {
-      this.customObjectAPI.deleteNamespacedCustomObject(
+      await this.customObjectAPI.deleteNamespacedCustomObject(
         devWorkspaceApiGroup,
         devworkspaceVersion,
         namespace,
@@ -134,8 +135,7 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
   }
 
   /**
-   * Patch a devworkspace
-   * @param devworkspace The devworkspace you want to patch
+   * Patch a DevWorkspace
    */
   async patch(namespace: string, name: string, patches: IPatch[]): Promise<IDevWorkspace> {
     return this.createPatch(namespace, name, patches);
@@ -167,5 +167,26 @@ export class NodeDevWorkspaceApi implements IDevWorkspaceApi {
     } catch (e) {
       throw new NodeRequestError(e);
     }
+  }
+
+  // todo add resource version
+  async watchInNamespace(namespace: string, callbacks: IDevWorkspaceCallbacks): Promise<{ abort: Function }> {
+    const path = `/apis/${devWorkspaceApiGroup}/${devworkspaceVersion}/watch/namespaces/${namespace}/devworkspaces`;
+
+    return this.customObjectWatch.watch(path, {}, (type: string, devworkspace: IDevWorkspace) => {
+      const workspaceId = devworkspace!.status!.devworkspaceId;
+
+      if (type === 'ADDED') {
+        callbacks.onAdded(devworkspace);
+      } else if (type === 'MODIFIED') {
+        callbacks.onModified(devworkspace);
+      } else if (type === 'DELETED') {
+        callbacks.onDeleted(workspaceId);
+      } else {
+        callbacks.onError(`Error: Unknown type '${type}'.`);
+      }
+    }, (error: any) => {
+      callbacks.onError(`Error: ${error}`);
+    });
   }
 }

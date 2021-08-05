@@ -10,82 +10,76 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { isInCluster } from '../src/node/services/helpers/index';
+import * as k8s from '@kubernetes/client-node';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
-import { IDevWorkspaceDevfile, IDevWorkspaceTemplate, INVERSIFY_TYPES } from '../src';
+import { IDevWorkspaceDevfile, IDevWorkspaceTemplate, DevWorkspaceClient } from '../src';
 import { delay } from '../src/node/services/helpers';
 import { conditionalTest, isIntegrationTestEnabled } from './utils/suite';
-import { container } from '../src/node/inversify.config';
-import { DevWorkspaceClient } from '../src/node/client';
 
 describe('DevWorkspace API integration testing against cluster', () => {
 
-    beforeEach(() => {
-        container.snapshot();
-    });
-
-    afterEach(() => {
-        container.restore();
-    });
-
     describe('Test Node DevWorkspace Api against local cluster', () => {
         conditionalTest('Test run the creation, retrieval, update and deletion of a devworkspace', isIntegrationTestEnabled, async (done: any) => {
-            const devWorkspaceClient = container.get<DevWorkspaceClient>(INVERSIFY_TYPES.IDevWorkspaceClient);
-            const nodeApi = devWorkspaceClient.getNodeApi({
-                inCluster: isInCluster()
-            });
+            const kc = new k8s.KubeConfig();
+            const kubeconfigFile = process.env['KUBECONFIG'];
+            if (!kubeconfigFile) {
+                throw 'KUBECONFIG must be configured with the valid current context set';
+            }
+            kc.loadFromFile(kubeconfigFile);
+
+            const dwClient = new DevWorkspaceClient(kc);
             const devfile = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-devfile.yaml', 'utf-8')) as IDevWorkspaceDevfile;
             const name = devfile.metadata.name;
             const namespace = devfile.metadata.namespace;
 
             // check that api is enabled
-            const isApiEnabled = await nodeApi.isDevWorkspaceApiEnabled();
+            const isApiEnabled = await dwClient.isDevWorkspaceApiEnabled();
             expect(isApiEnabled).toBe(true);
 
             // check that the namespace is initialized
              // initialize namespace if it doesn't exist
-             await nodeApi.cheApi.initializeNamespace(namespace);
+             await dwClient.cheApi.initializeNamespace(namespace);
              await delay(5000);
              var namespaceExists: boolean;
-             if (await (nodeApi.cheApi as any).isOpenShift()) {
-                namespaceExists = await (nodeApi.cheApi as any).doesProjectExist(namespace);
+             if (await (dwClient.cheApi as any).isOpenShift()) {
+                namespaceExists = await (dwClient.cheApi as any).doesProjectExist(namespace);
              } else {
-                namespaceExists = await (nodeApi.cheApi as any).doesNamespaceExist(namespace);
+                namespaceExists = await (dwClient.cheApi as any).doesNamespaceExist(namespace);
              }
              expect(namespaceExists).toBe(true);
 
             // check that creation works
-            const newDevWorkspace = await nodeApi.devworkspaceApi.create(devfile, 'che', true);
+            const newDevWorkspace = await dwClient.devworkspaceApi.create(devfile, 'che', true);
             expect(newDevWorkspace.metadata.name).toBe(name);
             expect(newDevWorkspace.metadata.namespace).toBe(namespace);
 
             // check that retrieval works
-            const allWorkspaces = await nodeApi.devworkspaceApi.listInNamespace(namespace);
-            expect(allWorkspaces.length).toBe(1);
-            const firstDevWorkspace = allWorkspaces[0];
+            const allWorkspaces = await dwClient.devworkspaceApi.listInNamespace(namespace);
+            expect(allWorkspaces.items.length).toBe(1);
+            const firstDevWorkspace = allWorkspaces.items[0];
             expect(firstDevWorkspace.metadata.name).toBe(name);
             expect(firstDevWorkspace.metadata.namespace).toBe(namespace);
 
-            const singleNamespace = await nodeApi.devworkspaceApi.getByName(namespace, name);
+            const singleNamespace = await dwClient.devworkspaceApi.getByName(namespace, name);
             expect(singleNamespace.metadata.name).toBe(name);
             expect(singleNamespace.metadata.namespace).toBe(namespace);
 
             await delay(2000);
-            const currentDevWorkspace = await nodeApi.devworkspaceApi.getByName(namespace, name);
+            const currentDevWorkspace = await dwClient.devworkspaceApi.getByName(namespace, name);
             const sampleRouting = 'sample';
             currentDevWorkspace.spec.routingClass = sampleRouting;
 
-            const updatedWorkspace = await nodeApi.devworkspaceApi.update(currentDevWorkspace);
+            const updatedWorkspace = await dwClient.devworkspaceApi.update(currentDevWorkspace);
             expect(updatedWorkspace.spec.routingClass).toBe(sampleRouting);
 
             // check that deletion works
-            await nodeApi.devworkspaceApi.delete(namespace, name);
+            await dwClient.devworkspaceApi.delete(namespace, name);
             await delay(5000);
-            const dwsInNamespace = await nodeApi.devworkspaceApi.listInNamespace(namespace);
-            var nonTerminatingWsCount = 0
-            for (const dw of dwsInNamespace) {
-                if (dw.status?.phase != 'Terminating') {
+            const dwsInNamespace = await dwClient.devworkspaceApi.listInNamespace(namespace);
+            var nonTerminatingWsCount = 0;
+            for (const dw of dwsInNamespace.items) {
+                if (dw.status?.phase !== 'Terminating') {
                     nonTerminatingWsCount++;
                 }
             }
@@ -94,51 +88,55 @@ describe('DevWorkspace API integration testing against cluster', () => {
         }, 60000);
 
         conditionalTest('Test run the creation, retrieval and deletion of a devworkspace template', isIntegrationTestEnabled, async (done: any) => {
-            const devWorkspaceClient = container.get<DevWorkspaceClient>(INVERSIFY_TYPES.IDevWorkspaceClient);
-            const nodeApi = devWorkspaceClient.getNodeApi({
-                inCluster: isInCluster()
-            });
+            const kc = new k8s.KubeConfig();
+            const kubeconfigFile = process.env['KUBECONFIG'];
+            if (!kubeconfigFile) {
+                throw 'KUBECONFIG must be configured with the valid current context set';
+            }
+            kc.loadFromFile(kubeconfigFile);
+
+            const dwClient = new DevWorkspaceClient(kc);
             const dwt = yaml.load(fs.readFileSync(__dirname + '/fixtures/sample-dwt.yaml', 'utf-8')) as IDevWorkspaceTemplate;
             const name = dwt.metadata.name;
             const namespace = dwt.metadata.namespace;
 
             // check that api is enabled
-            const isApiEnabled = await nodeApi.isDevWorkspaceApiEnabled();
+            const isApiEnabled = await dwClient.isDevWorkspaceApiEnabled();
             expect(isApiEnabled).toBe(true);
 
             // initialize namespace if it doesn't exist
-            await nodeApi.cheApi.initializeNamespace(namespace);
+            await dwClient.cheApi.initializeNamespace(namespace);
             await delay(5000);
             var namespaceExists: boolean;
-            if (await (nodeApi.cheApi as any).isOpenShift()) {
-               namespaceExists = await (nodeApi.cheApi as any).doesProjectExist(namespace);
+            if (await (dwClient.cheApi as any).isOpenShift()) {
+               namespaceExists = await (dwClient.cheApi as any).doesProjectExist(namespace);
             } else {
-               namespaceExists = await (nodeApi.cheApi as any).doesNamespaceExist(namespace);
+               namespaceExists = await (dwClient.cheApi as any).doesNamespaceExist(namespace);
             }
             expect(namespaceExists).toBe(true);
 
             // check that creation works
-            const newDWT = await nodeApi.templateApi.create(dwt);
+            const newDWT = await dwClient.templateApi.create(dwt);
             expect(newDWT.metadata.name).toBe(name);
             expect(newDWT.metadata.namespace).toBe(namespace);
 
             await delay(5000);
 
             // check that retrieval works
-            const allTemplates = await nodeApi.templateApi.listInNamespace(namespace);
+            const allTemplates = await dwClient.templateApi.listInNamespace(namespace);
             expect(allTemplates.length).toBe(1);
             const firstTemplate = allTemplates[0];
             expect(firstTemplate.metadata.name).toBe(name);
             expect(firstTemplate.metadata.namespace).toBe(namespace);
 
-            const singleNamespace = await nodeApi.templateApi.getByName(namespace, name);
+            const singleNamespace = await dwClient.templateApi.getByName(namespace, name);
             expect(singleNamespace.metadata.name).toBe(name);
             expect(singleNamespace.metadata.namespace).toBe(namespace);
 
             // check that deletion works
-            await nodeApi.templateApi.delete(namespace, name);
+            await dwClient.templateApi.delete(namespace, name);
             await delay(5000);
-            const finalNamespaces = await nodeApi.templateApi.listInNamespace(namespace);
+            const finalNamespaces = await dwClient.templateApi.listInNamespace(namespace);
             expect(finalNamespaces.length).toBe(0);
 
             done();

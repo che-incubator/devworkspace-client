@@ -10,15 +10,14 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
+
+export * from './types';
+
 export * from './common/services/converter';
 export * from './common/const/models';
 export * from './common/const';
-export * from './types';
 
-// we have to load these with require so that in the browser side module nothing fails when they aren't included in the webpack bundle
-const client = require('./node/client').DevWorkspaceClient;
-const container = require('./node/inversify.config').container;
+const dwClient = require('./node/services/api').DevWorkspaceClient;
 export {
-    client as DevWorkspaceClient,
-    container
+    dwClient as DevWorkspaceClient
 };

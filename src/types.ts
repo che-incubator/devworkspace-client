@@ -10,10 +10,54 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import * as k8s from '@kubernetes/client-node';
+export interface IDevWorkspaceApi {
+    /**
+     * Get the DevWorkspace with given namespace in the specified namespace
+     */
+    getByName(namespace: string, name: string): Promise<IDevWorkspace>;
 
-export interface IDevWorkspaceClient {
-    getNodeApi(config: INodeConfig): IDevWorkspaceClientApi;
+    /**
+     * Get list of devworkspaces in the given namespace
+     */
+    listInNamespace(namespace: string): Promise<IDevWorkspaceList>;
+
+    /**
+     * Listen to all DevWorkspaces changes in the given namespace
+     * @param namespace namespace where to listen to DevWorkspaces changes
+     * @param callbacks callback will be invoked when change happens
+     */
+    watchInNamespace(namespace: string, callbacks: IDevWorkspaceCallbacks): Promise<{ abort: Function }>;
+
+    /**
+     * Create a devworkspace based on the specified configuration.
+     */
+    create(
+        devfile: IDevWorkspaceDevfile,
+        routingClass: string,
+        started?: boolean,
+    ): Promise<IDevWorkspace>;
+
+    /**
+     * Updates the DevWorkspace with the given configuration
+     */
+    update(devworkspace: IDevWorkspace): Promise<IDevWorkspace>;
+
+    /**
+     * Delete the DevWorkspace with given name in the specified namespace
+     */
+    delete(namespace: string, name: string): Promise<void>;
+
+    /**
+     * Patches the DevWorkspace with given name in the specified namespace
+     */
+    patch(namespace: string, name: string, patches: IPatch[]): Promise<IDevWorkspace>;
+}
+
+export interface IDevWorkspaceTemplateApi {
+    listInNamespace(namespace: string): Promise<IDevWorkspaceTemplate[]>;
+    getByName(namespace: string, name: string): Promise<IDevWorkspaceTemplate>;
+    delete(namespace: string, name: string): Promise<void>;
+    create(template: IDevWorkspaceTemplate): Promise<IDevWorkspaceTemplate>;
 }
 
 export type IDevWorkspaceCallbacks = {
@@ -21,47 +65,30 @@ export type IDevWorkspaceCallbacks = {
     onDeleted: (workspaceId: string) => void;
     onAdded: (workspace: IDevWorkspace) => void;
     onError: (error: string) => void;
-}
+};
 
-export interface IDevWorkspaceWatcher {
-    config: k8s.KubeConfig;
-    watcher(namespace: string, callbacks: IDevWorkspaceCallbacks): Promise<{ abort: Function }>;
-}
-
-export interface IDevWorkspaceApi {
-    config: k8s.KubeConfig;
-    listInNamespace(namespace: string): Promise<IDevWorkspace[]>;
-    getByName(namespace: string, name: string): Promise<IDevWorkspace>;
-    create(
-        devfile: IDevWorkspaceDevfile,
-        routingClass: string,
-        started?: boolean,
-    ): Promise<IDevWorkspace>;
-    update(devworkspace: IDevWorkspace): Promise<IDevWorkspace>;
-    delete(namespace: string, name: string): Promise<void>;
-    patch(namespace: string, name: string, patches: IPatch[]): Promise<IDevWorkspace>;
-}
-
-export interface IDevWorkspaceTemplateApi {
-    config: k8s.KubeConfig;
-    listInNamespace(namespace: string): Promise<IDevWorkspaceTemplate[]>;
-    getByName(namespace: string, name: string): Promise<IDevWorkspaceTemplate>;
-    delete(namespace: string, name: string): Promise<void>;
-    create(template: IDevWorkspaceTemplate): Promise<IDevWorkspaceTemplate>;
-}
-
-export interface IDevWorkspaceClientApi {
-    config: k8s.KubeConfig;
+export interface IDevWorkspaceClient {
     devworkspaceApi: IDevWorkspaceApi;
     templateApi: IDevWorkspaceTemplateApi;
     cheApi: ICheApi;
-    devWorkspaceWatcher: IDevWorkspaceWatcher;
     isDevWorkspaceApiEnabled(): Promise<boolean>;
 }
 
+// deprecated!
+// see for details https://github.com/eclipse/che/issues/20167
 export interface ICheApi {
-    config: k8s.KubeConfig;
+    // deprecated!
+    // see for details https://github.com/eclipse/che/issues/20167
     initializeNamespace(namespace: string): Promise<void>;
+}
+
+export interface IDevWorkspaceList {
+    apiVersion: string;
+    kind: string;
+    metadata: {
+        resourceVersion?: string;
+    };
+    items: IDevWorkspace[];
 }
 
 export interface IDevWorkspace {
@@ -126,27 +153,8 @@ export interface IDevWorkspaceDevfile {
     events?: any;
 }
 
-export interface INodeConfig {
-    inCluster: boolean;
-}
-
-export interface IKubernetesGroupsModel {
-    name: string;
-    versions: { version: string }[];
-}
-
 export interface IPatch {
     op: string;
     path: string;
     value?: any;
 }
-
-export const INVERSIFY_TYPES = {
-    IDevWorkspaceClient: Symbol('IDevWorkspaceClient'),
-    INodeApiFactory: Symbol('Factory<NodeApi>'),
-    IDevWorkspaceNodeClientApi: Symbol('IDevWorkspaceNodeClientApi'),
-    IDevWorkspaceNodeTemplateApi: Symbol('IDevWorkspaceNodeTemplateApi'),
-    IDevWorkspaceNodeApi: Symbol('IDevWorkspaceNodeApi'),
-    IDevWorkspaceNodeCheApi: Symbol('IDevWorkspaceNodeCheApi'),
-    IDevWorkspaceWatcher: Symbol('IDevWorkspaceWatcher')
-};

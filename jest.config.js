@@ -8,5 +8,4 @@ module.exports = {
   moduleDirectories: [
     'node_modules',
   ],
-  setupFiles: ['./src/node/inversify.config.ts']
 };

@@ -44,7 +44,7 @@ const client = {
                 exclude: /node_modules/
             },
             {
-                test: [/node/, /\.\/node\/client/, /\.\/node\/inversify.config/],
+                test: [/node/, /\.\/node/],
                 loader: 'null-loader',
             },
         ]

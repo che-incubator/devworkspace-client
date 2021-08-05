@@ -11,7 +11,6 @@
  */
 
 import * as k8s from '@kubernetes/client-node';
-import { injectable } from 'inversify';
 import { NodeRequestError } from '../errors';
 import { devWorkspaceApiGroup, devworkspaceTemplateSubresource, devworkspaceVersion } from '../../../common/const';
 import {
@@ -19,11 +18,10 @@ import {
     IDevWorkspaceTemplateApi,
 } from '../../../types';
 
-@injectable()
-export class NodeDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
-    private customObjectAPI!: k8s.CustomObjectsApi;
+export class DevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
+    private customObjectAPI: k8s.CustomObjectsApi;
 
-    set config(kc: k8s.KubeConfig) {
+    constructor(kc: k8s.KubeConfig) {
         this.customObjectAPI = kc.makeApiClient(k8s.CustomObjectsApi);
     }
 
@@ -76,7 +74,7 @@ export class NodeDevWorkspaceTemplateApi implements IDevWorkspaceTemplateApi {
 
     async delete(namespace: string, name: string): Promise<void> {
         try {
-            this.customObjectAPI.deleteNamespacedCustomObject(
+            await this.customObjectAPI.deleteNamespacedCustomObject(
                 devWorkspaceApiGroup,
                 devworkspaceVersion,
                 namespace,
