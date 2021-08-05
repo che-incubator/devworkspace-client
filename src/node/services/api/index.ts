@@ -11,31 +11,31 @@
  */
 
 import * as k8s from '@kubernetes/client-node';
-import { inject, injectable } from 'inversify';
 import { devWorkspaceApiGroup, devworkspaceVersion } from '../../../common/const';
 import {
   ICheApi,
   IDevWorkspaceApi,
-  IDevWorkspaceClientApi,
-  IDevWorkspaceTemplateApi, IDevWorkspaceWatcher,
-  INVERSIFY_TYPES,
+  IDevWorkspaceClient,
+  IDevWorkspaceTemplateApi,
 } from '../../../types';
 import { findApi } from '../helpers';
+import {DevWorkspaceTemplateApi} from './template-api';
+import {DevWorkspaceApi} from './workspace-api';
+import {CheApi} from './che-api';
 
-@injectable()
-export class NodeApi implements IDevWorkspaceClientApi {
-  private apisApi!: k8s.ApisApi;
+export class DevWorkspaceClient implements IDevWorkspaceClient {
   private apiEnabled: boolean | undefined;
 
-  constructor(
-    @inject(INVERSIFY_TYPES.IDevWorkspaceNodeTemplateApi) private _templateApi: IDevWorkspaceTemplateApi,
-    @inject(INVERSIFY_TYPES.IDevWorkspaceNodeApi) private _devworkspaceApi: IDevWorkspaceApi,
-    @inject(INVERSIFY_TYPES.IDevWorkspaceNodeCheApi) private _cheApi: ICheApi,
-    @inject(INVERSIFY_TYPES.IDevWorkspaceWatcher) private _devWorkspaceWatcher: IDevWorkspaceWatcher
-  ) {}
+  private readonly _apisApi: k8s.ApisApi;
+  private readonly _templateApi: IDevWorkspaceTemplateApi;
+  private readonly _devworkspaceApi: IDevWorkspaceApi;
+  private readonly _cheApi: ICheApi;
 
-  set config(kc: k8s.KubeConfig) {
-    this.apisApi = kc.makeApiClient(k8s.ApisApi);
+  constructor(kc: k8s.KubeConfig) {
+    this._templateApi = new DevWorkspaceTemplateApi(kc);
+    this._devworkspaceApi = new DevWorkspaceApi(kc);
+    this._apisApi = kc.makeApiClient(k8s.ApisApi);
+    this._cheApi = new CheApi(kc);
   }
 
   get templateApi(): IDevWorkspaceTemplateApi {
@@ -50,15 +50,11 @@ export class NodeApi implements IDevWorkspaceClientApi {
     return this._cheApi;
   }
 
-  get devWorkspaceWatcher(): IDevWorkspaceWatcher {
-    return this._devWorkspaceWatcher;
-  }
-
   async isDevWorkspaceApiEnabled(): Promise<boolean> {
     if (this.apiEnabled !== undefined) {
       return Promise.resolve(this.apiEnabled);
     }
-    this.apiEnabled = await findApi(this.apisApi!, devWorkspaceApiGroup, devworkspaceVersion);
+    this.apiEnabled = await findApi(this._apisApi, devWorkspaceApiGroup, devworkspaceVersion);
     return this.apiEnabled;
   }
 }

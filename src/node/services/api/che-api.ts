@@ -21,17 +21,15 @@ import {
 } from '../../../common/const';
 import { projectRequestModel, namespaceModel } from '../../../common/const/models';
 import { findApi } from '../helpers';
-import { injectable } from 'inversify';
 import { NodeRequestError } from '../errors';
 import { V1Namespace } from '@kubernetes/client-node';
 
-@injectable()
-export class NodeCheApi implements ICheApi {
-  private customObjectAPI!: k8s.CustomObjectsApi;
-  private coreV1API!: k8s.CoreV1Api;
-  private apisApi!: k8s.ApisApi;
+export class CheApi implements ICheApi {
+  private customObjectAPI: k8s.CustomObjectsApi;
+  private coreV1API: k8s.CoreV1Api;
+  private apisApi: k8s.ApisApi;
 
-  set config(kc: k8s.KubeConfig) {
+  constructor(kc: k8s.KubeConfig) {
     this.customObjectAPI = kc.makeApiClient(k8s.CustomObjectsApi);
     this.coreV1API = kc.makeApiClient(k8s.CoreV1Api);
     this.apisApi = kc.makeApiClient(k8s.ApisApi);
@@ -43,12 +41,12 @@ export class NodeCheApi implements ICheApi {
       if (isOpenShift) {
         const doesProjectAlreadyExist = await this.doesProjectExist(namespace);
         if (!doesProjectAlreadyExist) {
-          this.createProject(namespace);
+          await this.createProject(namespace);
         }
       } else {
         const doesNamespaceExist = await this.doesNamespaceExist(namespace);
         if (!doesNamespaceExist) {
-          this.createNamespace(namespace);
+          await this.createNamespace(namespace);
         }
       }
     } catch (e) {
@@ -71,11 +69,9 @@ export class NodeCheApi implements ICheApi {
 
   async doesNamespaceExist(namespace: string): Promise<boolean> {
     try {
-      const resp = await this.coreV1API.readNamespace(namespace);
-      if (resp.body instanceof V1Namespace) {
-        return true;
-      }
-      return false;
+      await this.coreV1API.readNamespace(namespace);
+      // namespace is fetched, so it exists
+      return true;
     } catch (e) {
       return false;
     }

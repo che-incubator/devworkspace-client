@@ -1,7 +1,7 @@
 schemaVersion: 2.1.0
 metadata:
   name: nodejs-stack
-  namespace: sample
+  namespace: dwclient-test
   attributes:
     author: Somebody
     dw.metadata.annotations:
