@@ -1,5 +1,7 @@
 # DevWorkspace Client
 
+:warning: It's deprecated since every DevWorkspace related operation can be done with K8s API client. These code is moving to https://github.com/eclipse-che/che-dashboard and can be extracted back to library when we see a clear benefits for all clients for this lib.
+
 The DevWorkspace Client is a library for interacting with DevWorkspaces and related objects on your cluster. It's node side library that wraps [@kubernetes/client-node](https://www.npmjs.com/package/@kubernetes/client-node).
 
 It's built and published on each commit from main branch into [@eclipse-che/devworkspace-client](https://www.npmjs.com/package/@eclipse-che/devworkspace-client)
